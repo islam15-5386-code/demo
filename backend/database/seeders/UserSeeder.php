@@ -14,6 +14,45 @@ class UserSeeder extends Seeder
     {
         $roleIds = Role::query()->pluck('id', 'name');
 
+        // Test Login User - Student
+        $testStudent = User::query()->updateOrCreate(
+            ['email' => 'student@example.com'],
+            [
+                'tenant_id' => null,
+                'name' => 'Test Student',
+                'phone' => '01700000001',
+                'password' => 'password123',
+                'role' => 'student',
+                'department' => 'CSE',
+                'city' => 'Dhaka',
+                'address' => 'Test Address',
+                'is_active' => true,
+            ]
+        );
+
+        // Test Login User - Admin
+        $testAdmin = User::query()->updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'tenant_id' => null,
+                'name' => 'Test Admin',
+                'phone' => '01700000002',
+                'password' => 'password123',
+                'role' => 'admin',
+                'department' => 'Administration',
+                'city' => 'Dhaka',
+                'address' => 'Test Address',
+                'is_active' => true,
+            ]
+        );
+
+        if (isset($roleIds['student'])) {
+            $testStudent->roles()->sync([$roleIds['student']]);
+        }
+        if (isset($roleIds['admin'])) {
+            $testAdmin->roles()->sync([$roleIds['admin']]);
+        }
+
         $superAdmin = User::query()->updateOrCreate(
             ['email' => 'platform.admin@example.com'],
             [
