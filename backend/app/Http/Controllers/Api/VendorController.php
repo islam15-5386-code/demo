@@ -13,13 +13,10 @@ class VendorController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin']);
 
         $vendors = Tenant::query()
-            ->when(
-                $user->role !== 'super_admin',
-                fn ($query) => $query->where('id', $user->tenant_id)
-            )
+            ->where('id', $user->tenant_id)
             ->when(
                 $request->filled('search'),
                 fn ($query) => $query->where(function ($inner) use ($request): void {
@@ -47,7 +44,7 @@ class VendorController extends Controller
 
     public function current(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager'])->loadMissing('tenant.users:id,tenant_id,is_active', 'tenant.courses:id,tenant_id,status', 'tenant.billingProfile:id,tenant_id,active_students,used_seats');
+        $user = $this->authorizeRoles($request, ['admin'])->loadMissing('tenant.users:id,tenant_id,is_active', 'tenant.courses:id,tenant_id,status', 'tenant.billingProfile:id,tenant_id,active_students,used_seats');
 
         abort_if($user->tenant === null, 404, 'Vendor not found.');
 

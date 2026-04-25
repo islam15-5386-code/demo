@@ -47,6 +47,11 @@ class Tenant extends Model
         return $this->hasMany(Course::class);
     }
 
+    public function liveClasses(): HasMany
+    {
+        return $this->hasMany(LiveClass::class);
+    }
+
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);

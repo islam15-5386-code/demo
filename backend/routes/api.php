@@ -62,6 +62,12 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('/live-classes', [LiveClassController::class, 'index']);
         Route::post('/live-classes', [LiveClassController::class, 'store']);
+        Route::get('/live-classes/{liveClass}', [LiveClassController::class, 'show']);
+        Route::post('/live-classes/{liveClass}/go-live', [LiveClassController::class, 'goLive']);
+        Route::post('/live-classes/{liveClass}/complete', [LiveClassController::class, 'complete']);
+        Route::post('/live-classes/{liveClass}/mark-recorded', [LiveClassController::class, 'markRecorded']);
+        Route::post('/live-classes/{liveClass}/join', [LiveClassController::class, 'join']);
+        Route::post('/live-classes/{liveClass}/leave', [LiveClassController::class, 'leave']);
         Route::patch('/live-classes/{liveClass}/status', [LiveClassController::class, 'updateStatus']);
         Route::get('/live-classes/{liveClass}/attendance', [AttendanceController::class, 'index']);
         Route::post('/live-classes/{liveClass}/attendance', [AttendanceController::class, 'store']);

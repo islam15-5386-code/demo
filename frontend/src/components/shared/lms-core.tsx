@@ -26,6 +26,28 @@ export function downloadHtmlFile(filename: string, content: string) {
   downloadTextFile(filename, content, "text/html;charset=utf-8");
 }
 
+export function SeeMoreButton({
+  expanded,
+  remaining,
+  onClick
+}: {
+  expanded: boolean;
+  remaining: number;
+  onClick: () => void;
+}) {
+  return (
+    <div className="flex justify-center">
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-foreground/15 bg-white px-5 py-2 text-sm font-semibold text-foreground shadow-soft transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#13212a]"
+      >
+        {expanded ? "Show less" : `See more (${remaining} more)`}
+      </button>
+    </div>
+  );
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -54,8 +76,8 @@ export function buildCertificateHtml({
   const institutionName = escapeHtml(branding.tenantName || "Smart LMS");
   const logoText = escapeHtml((branding.logoText || "BT").slice(0, 3).toUpperCase());
   const customDomain = escapeHtml(branding.customDomain || "betopiaacademy.com");
-  const primary = branding.primaryColor || "#153b4b";
-  const accent = branding.accentColor || "#d6ab47";
+  const primary = branding.primaryColor || "#1f4f73";
+  const accent = branding.accentColor || "#c8942d";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -67,297 +89,243 @@ export function buildCertificateHtml({
     :root {
       --primary: ${primary};
       --accent: ${accent};
-      --ink: #2a2a2a;
-      --gold: #d8b25a;
-      --gold-soft: #f3e1aa;
-      --paper: #fffef9;
-      --cream: #f8f3e5;
+      --ink: #1f425b;
+      --paper: #fbfcfe;
+      --border: #c8942d;
+      --soft: #f5efe3;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg, #f4efdf 0%, #faf8f0 50%, #f6f7f3 100%);
+      background:
+        linear-gradient(135deg, rgba(18, 74, 115, 0.96) 0 18%, transparent 18% 82%, rgba(18, 74, 115, 0.96) 82% 100%),
+        linear-gradient(45deg, transparent 0 7%, rgba(200, 148, 45, 0.96) 7% 9%, transparent 9% 91%, rgba(200, 148, 45, 0.96) 91% 93%, transparent 93% 100%),
+        linear-gradient(135deg, #f4f7fb, #eef3f8);
       display: grid;
       place-items: center;
-      font-family: Georgia, "Times New Roman", serif;
+      padding: 26px;
       color: var(--ink);
-      padding: 24px;
+      font-family: "Segoe UI", Arial, sans-serif;
     }
     .sheet {
       position: relative;
-      width: min(1120px, 100%);
-      min-height: 760px;
-      background:
-        linear-gradient(145deg, rgba(248, 243, 229, 0.52), transparent 28%),
-        linear-gradient(-145deg, rgba(248, 243, 229, 0.5), transparent 28%),
-        linear-gradient(125deg, rgba(255,255,255,0.84), rgba(248,243,229,0.38)),
-        var(--paper);
-      border: 2px solid rgba(214, 178, 90, 0.7);
-      box-shadow: 0 34px 90px rgba(21, 59, 75, 0.16);
+      width: min(1180px, 100%);
+      min-height: 790px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,252,255,0.96));
+      box-shadow: 0 40px 100px rgba(12, 30, 46, 0.18);
       overflow: hidden;
     }
     .sheet::before {
       content: "";
       position: absolute;
-      top: 76px;
-      left: 80px;
-      right: 80px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(214,178,90,0.2), rgba(214,178,90,0.9), rgba(214,178,90,0.2));
+      inset: 28px;
+      border: 4px solid var(--border);
       pointer-events: none;
     }
     .sheet::after {
       content: "";
       position: absolute;
-      inset: 34px;
-      border: 1px solid rgba(214, 178, 90, 0.32);
+      inset: 44px;
+      border: 2px solid var(--border);
       pointer-events: none;
     }
-    .geo-left,
-    .geo-right {
+    .corner {
       position: absolute;
-      top: 180px;
-      width: 190px;
-      height: 320px;
-      opacity: 0.92;
+      width: 128px;
+      height: 128px;
+      border: 5px solid var(--border);
     }
-    .geo-left { left: -34px; }
-    .geo-right { right: -34px; transform: scaleX(-1); }
-    .geo-left::before,
-    .geo-left::after,
-    .geo-right::before,
-    .geo-right::after {
+    .corner::after {
       content: "";
       position: absolute;
-      border: 12px solid rgba(214, 178, 90, 0.86);
-      transform: rotate(45deg);
+      inset: 14px;
+      border: 3px solid var(--border);
     }
-    .geo-left::before,
-    .geo-right::before {
-      width: 132px;
-      height: 132px;
-      left: 0;
-      top: 30px;
+    .corner-tl {
+      top: 58px;
+      left: 56px;
+      border-right: 0;
+      border-bottom: 0;
     }
-    .geo-left::after,
-    .geo-right::after {
-      width: 86px;
-      height: 86px;
-      left: 72px;
-      top: 136px;
+    .corner-tr {
+      top: 58px;
+      right: 56px;
+      border-left: 0;
+      border-bottom: 0;
     }
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 34px 84px 0;
-      gap: 24px;
+    .corner-bl {
+      bottom: 58px;
+      left: 56px;
+      border-right: 0;
+      border-top: 0;
+    }
+    .corner-br {
+      bottom: 58px;
+      right: 56px;
+      border-left: 0;
+      border-top: 0;
+    }
+    .inner {
+      position: relative;
+      z-index: 1;
+      padding: 78px 94px 70px;
+      text-align: center;
     }
     .brand {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
+      margin-bottom: 18px;
     }
     .brand-mark {
-      width: 72px;
-      height: 72px;
+      width: 66px;
+      height: 66px;
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 34%), linear-gradient(145deg, var(--primary), #0f2f3e);
-      color: white;
-      border: 4px solid rgba(214, 178, 90, 0.42);
-      font-size: 26px;
+      background: linear-gradient(145deg, var(--primary), #143a58);
+      color: #fff;
+      border: 4px solid rgba(200, 148, 45, 0.42);
+      font-size: 24px;
       font-weight: 700;
-      font-family: "Segoe UI", Arial, sans-serif;
-      box-shadow: 0 18px 40px rgba(21, 59, 75, 0.16);
+      box-shadow: 0 18px 30px rgba(20, 58, 88, 0.18);
     }
     .brand-copy h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 20px;
       letter-spacing: 0.04em;
+      text-align: left;
     }
     .brand-copy p {
       margin: 4px 0 0;
       font-size: 11px;
-      letter-spacing: 0.26em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: rgba(42, 42, 42, 0.58);
-      font-family: "Segoe UI", Arial, sans-serif;
-    }
-    .verify {
-      position: absolute;
-      top: 52px;
-      right: 84px;
-      text-align: right;
-      font-family: "Segoe UI", Arial, sans-serif;
-    }
-    .verify-label {
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(42, 42, 42, 0.52);
-    }
-    .verify-code {
-      margin-top: 8px;
-      font-size: 16px;
-      font-weight: 700;
-      color: #7e6423;
-    }
-    .body {
-      position: relative;
-      padding: 84px 106px 0;
-      text-align: center;
+      color: rgba(31, 66, 91, 0.6);
+      text-align: left;
     }
     .title {
-      margin: 18px 0 10px;
-      font-size: 74px;
-      letter-spacing: 0.08em;
+      margin: 14px 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 104px;
+      line-height: 0.92;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
-      font-weight: 400;
+      color: var(--primary);
+      font-weight: 500;
     }
     .subtitle {
-      margin: 0;
-      font-size: 30px;
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 18px 18px 14px;
+      border-top: 5px solid var(--border);
+      border-bottom: 5px solid var(--border);
+      font-size: 34px;
       letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(42, 42, 42, 0.9);
+      color: var(--primary);
     }
     .presented {
-      margin: 34px 0 0;
+      margin: 54px 0 0;
       font-size: 18px;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(42, 42, 42, 0.78);
+      color: rgba(31, 66, 91, 0.76);
     }
     .name {
-      margin: 26px 0 22px;
-      font-size: 92px;
-      line-height: 0.98;
+      margin: 20px 0 14px;
+      font-size: 118px;
+      line-height: 0.95;
       font-weight: 400;
-      color: #2f3238;
+      color: var(--primary);
       font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
     }
     .body-copy {
-      max-width: 720px;
+      width: min(980px, 100%);
       margin: 0 auto;
+      padding-top: 18px;
+      border-top: 5px solid var(--border);
       font-size: 18px;
-      line-height: 1.65;
-      font-style: italic;
-      color: rgba(42, 42, 42, 0.74);
+      line-height: 1.55;
+      letter-spacing: 0.08em;
+      color: rgba(31, 66, 91, 0.9);
     }
     .course-line {
-      width: min(760px, 100%);
-      margin: 30px auto 0;
-      padding-top: 18px;
-      border-top: 2px solid rgba(214, 178, 90, 0.72);
+      margin: 38px auto 0;
+      max-width: 880px;
     }
     .course {
-      font-size: 34px;
-      font-weight: 400;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 36px;
+      font-weight: 500;
       color: var(--primary);
     }
     .details {
-      margin-top: 22px;
-      font-size: 18px;
-      color: rgba(42, 42, 42, 0.82);
-    }
-    .laurels {
-      position: absolute;
-      top: 176px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 180px;
-      pointer-events: none;
-    }
-    .laurel {
-      width: 118px;
-      height: 210px;
-      opacity: 0.92;
-    }
-    .laurel svg {
-      width: 100%;
-      height: 100%;
-      fill: none;
-      stroke: url(#goldGradient);
-      stroke-width: 6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+      margin-top: 12px;
+      font-size: 15px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(31, 66, 91, 0.72);
     }
     .seal {
-      width: 148px;
-      height: 148px;
-      margin: 34px auto 0;
+      width: 108px;
+      height: 108px;
+      margin: 44px auto 28px;
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background:
-        radial-gradient(circle at 50% 50%, #fdf3c6 0 34%, #f2d887 35% 52%, transparent 53%),
-        radial-gradient(circle at 50% 50%, #f6df9a 0 62%, #b97920 63% 67%, #9b1220 68% 100%);
-      box-shadow: 0 20px 45px rgba(130, 95, 18, 0.2);
+      background: linear-gradient(145deg, var(--primary), #27597d);
       position: relative;
-      font-family: "Segoe UI", Arial, sans-serif;
+      color: #fff;
       font-weight: 700;
       text-transform: uppercase;
-      color: #7f5b17;
       text-align: center;
       font-size: 12px;
       line-height: 1.2;
+      box-shadow: 0 18px 40px rgba(31, 66, 91, 0.2);
+      border: 6px solid rgba(200, 148, 45, 0.78);
     }
-    .seal::before,
     .seal::after {
       content: "";
       position: absolute;
-      bottom: -56px;
-      width: 34px;
-      height: 88px;
-      background: linear-gradient(180deg, #b0141e, #7f0610);
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+      inset: 12px;
+      border: 2px solid rgba(255,255,255,0.55);
+      border-radius: 50%;
     }
-    .seal::before { left: 32px; transform: rotate(-7deg); }
-    .seal::after { right: 32px; transform: rotate(7deg); }
     .footer {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: end;
-      gap: 26px;
-      padding: 80px 90px 74px;
+      gap: 30px;
       margin-top: 8px;
     }
     .sign {
       text-align: center;
-      font-family: "Segoe UI", Arial, sans-serif;
     }
     .line {
       height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(214,178,90,0.95), transparent);
+      background: linear-gradient(90deg, transparent, rgba(200,148,45,0.95), transparent);
       margin-bottom: 16px;
     }
     .sign strong {
       display: block;
-      font-size: 13px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(42, 42, 42, 0.7);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 24px;
+      color: var(--primary);
     }
     .sign span {
       display: block;
-      margin-top: 7px;
-      font-size: 18px;
-      font-weight: 700;
-      color: #2d2f34;
+      margin-top: 6px;
+      font-size: 16px;
+      color: var(--primary);
     }
     .meta {
       text-align: center;
-      font-family: "Segoe UI", Arial, sans-serif;
       font-size: 12px;
       line-height: 1.9;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(42, 42, 42, 0.6);
+      color: rgba(31, 66, 91, 0.68);
     }
     @media print {
       body { background: white; padding: 0; }
@@ -367,88 +335,51 @@ export function buildCertificateHtml({
 </head>
 <body>
   <article class="sheet">
-    <span class="geo-left"></span>
-    <span class="geo-right"></span>
+    <span class="corner corner-tl"></span>
+    <span class="corner corner-tr"></span>
+    <span class="corner corner-bl"></span>
+    <span class="corner corner-br"></span>
 
-    <header class="header">
+    <section class="inner">
       <div class="brand">
         <div class="brand-mark">${logoText}</div>
         <div class="brand-copy">
           <h1>${institutionName}</h1>
-          <p>Learning Platform</p>
-        </div>
-      </div>
-      <div class="verify">
-        <div class="verify-label">Verification Code</div>
-        <div class="verify-code">${verificationCode}</div>
-      </div>
-    </header>
-
-    <section class="body">
-      <div class="laurels">
-        <div class="laurel">
-          <svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#eed88c" />
-                <stop offset="100%" stop-color="#bb8b22" />
-              </linearGradient>
-            </defs>
-            <path d="M92 182c-42-18-64-56-68-120" />
-            <path d="M82 166c-28-6-45-26-52-58" />
-            <path d="M74 148c-18-2-30-12-38-32" />
-            <path d="M64 128c-14 0-23-6-31-18" />
-            <path d="M57 106c-11 1-18-2-25-10" />
-          </svg>
-        </div>
-        <div class="laurel">
-          <svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="goldGradientRight" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#eed88c" />
-                <stop offset="100%" stop-color="#bb8b22" />
-              </linearGradient>
-            </defs>
-            <path d="M28 182c42-18 64-56 68-120" stroke="url(#goldGradientRight)" />
-            <path d="M38 166c28-6 45-26 52-58" stroke="url(#goldGradientRight)" />
-            <path d="M46 148c18-2 30-12 38-32" stroke="url(#goldGradientRight)" />
-            <path d="M56 128c14 0 23-6 31-18" stroke="url(#goldGradientRight)" />
-            <path d="M63 106c11 1 18-2 25-10" stroke="url(#goldGradientRight)" />
-          </svg>
+          <p>Learning Excellence Award</p>
         </div>
       </div>
       <h2 class="title">Certificate</h2>
-      <p class="subtitle">Of Completion</p>
-      <p class="presented">This is to certify that</p>
+      <p class="subtitle">${courseTitle}</p>
+      <p class="presented">This certificate is proudly presented to</p>
       <h3 class="name">${studentName}</h3>
       <p class="body-copy">
-        has successfully completed the required learning activities, assessments, and course milestones on the
-        ${institutionName} digital learning environment.
+        For successfully completing the required lessons, assessments, and course milestones with distinction on the
+        ${institutionName} learning platform.
       </p>
       <div class="course-line">
-        <div class="course">${courseTitle}</div>
+        <div class="course">${institutionName}</div>
+        <div class="details">Issued on ${escapeHtml(issuedAt)}  |  Certificate no ${certificateNumber}</div>
       </div>
-      <div class="details">${institutionName}  |  Issued on ${escapeHtml(issuedAt)}</div>
       <div class="seal">Verified<br />Seal</div>
-    </section>
 
-    <footer class="footer">
+      <footer class="footer">
       <div class="sign">
         <div class="line"></div>
-        <strong>Chief Executive Officer</strong>
+        <strong>Academic Director</strong>
         <span>${institutionName}</span>
       </div>
       <div class="meta">
-        <div>Certificate no ${certificateNumber}</div>
+        <div>Verification code ${verificationCode}</div>
         <div>${customDomain}</div>
-        <div>${verificationCode}</div>
+        <div>Smart LMS Certified</div>
       </div>
       <div class="sign">
         <div class="line"></div>
-        <strong>Chief Operating Officer</strong>
+        <strong>Program Manager</strong>
         <span>Smart LMS</span>
       </div>
-    </footer>
+      </footer>
+    </section>
   </article>
 </body>
 </html>`;
@@ -524,7 +455,7 @@ export function Section({
 }) {
   return (
     <section
-      className={`rounded-[24px] border p-6 shadow-soft ${
+      className={`min-w-0 overflow-hidden rounded-[24px] border p-6 shadow-soft ${
         accent
           ? "border-[#E8A020]/25 bg-[#1A1A2E] text-white shadow-glow dark:border-[#E8A020]/25 dark:bg-[#151526]"
           : "border-border/70 bg-card/80 backdrop-blur dark:border-white/8 dark:bg-white/5"
@@ -556,18 +487,20 @@ export function StatCard({
 }) {
   return (
     <div
-      className={`group min-h-[8.2rem] rounded-[24px] border border-border/70 bg-card/85 p-5 shadow-soft backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-glow dark:border-white/8 dark:bg-white/5 ${className}`}
+      className={`group min-w-0 overflow-hidden rounded-[24px] border border-border/70 bg-card/85 p-5 shadow-soft backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-glow dark:border-white/8 dark:bg-white/5 ${className}`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <p className="min-w-0 text-xs uppercase tracking-[0.22em] text-muted-foreground text-pretty-wrap">{label}</p>
         {icon ? (
-          <div className="rounded-[18px] bg-[#1A1A2E]/6 p-2.5 text-[#1A1A2E] dark:bg-white/10 dark:text-[#E8A020]">
+          <div className="shrink-0 rounded-[18px] bg-[#1A1A2E]/6 p-2.5 text-[#1A1A2E] dark:bg-white/10 dark:text-[#E8A020]">
             {icon}
           </div>
         ) : null}
       </div>
-      <p className="mt-3 font-serif text-4xl font-semibold md:text-[2.7rem]">{value}</p>
-      {note ? <p className="mt-2 text-sm text-muted-foreground">{note}</p> : null}
+      <p className="mt-3 max-w-full overflow-hidden text-pretty-wrap break-words font-serif text-[clamp(2rem,4vw,2.9rem)] font-semibold leading-[1.05]">
+        {value}
+      </p>
+      {note ? <p className="mt-2 text-sm text-muted-foreground text-pretty-wrap">{note}</p> : null}
     </div>
   );
 }
@@ -588,9 +521,9 @@ export function MetricGrid({
   items: Array<{ label: string; value: string; note?: string; icon?: ReactNode }>;
 }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
       {items.map((item) => (
-        <StatCard key={item.label} {...item} />
+        <StatCard key={item.label} {...item} className="min-h-[8.2rem]" />
       ))}
     </div>
   );
@@ -655,14 +588,16 @@ export function WorkspaceHero({
   return (
     <section className={`${pageFrame} pb-7 pt-10 md:pb-8`}>
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-        <div>
+        <div className="workspace-reveal relative overflow-hidden rounded-[30px] border border-white/40 bg-[linear-gradient(135deg,rgba(255,255,255,0.88),rgba(255,248,234,0.72)_42%,rgba(242,248,247,0.86))] px-7 py-8 shadow-[0_28px_60px_-40px_rgba(24,40,72,0.42)] backdrop-blur dark:border-white/8 dark:bg-white/5">
+          <div className="pointer-events-none absolute inset-y-0 right-[6%] w-36 rounded-full bg-[radial-gradient(circle,rgba(232,160,32,0.16),transparent_68%)] blur-2xl" />
+          <div className="pointer-events-none absolute -left-8 top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(29,78,216,0.09),transparent_70%)] blur-2xl" />
           <p className="inline-flex rounded-full border border-foreground/10 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground shadow-soft dark:border-white/8 dark:bg-white/5">
             {eyebrow}
           </p>
           <h1 className="mt-6 max-w-4xl font-serif text-5xl leading-[0.96] text-balance md:text-6xl">{title}</h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">{description}</p>
         </div>
-        <div className="rounded-[24px] border border-foreground/10 bg-white/56 p-4 shadow-soft lg:mt-8 lg:max-w-[25rem] lg:justify-self-end dark:border-white/8 dark:bg-white/5">
+        <div className="workspace-reveal workspace-delay-1 ambient-float soft-shimmer rounded-[28px] border border-foreground/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,248,240,0.72))] p-5 shadow-[0_30px_60px_-42px_rgba(31,41,55,0.45)] lg:mt-8 lg:max-w-[25rem] lg:justify-self-end dark:border-white/8 dark:bg-white/5">
           <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Working frontend flows</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Badge>Multi-tenant branding</Badge>

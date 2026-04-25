@@ -54,6 +54,19 @@ class CourseSeeder extends Seeder
 
                 $this->seedModulesAndLessons($course, $template, $tenant->id, $courseIndex);
             }
+
+            $demoTeacher = User::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('email', 'teacher@example.com')
+                ->first();
+
+            if ($demoTeacher !== null) {
+                Course::query()
+                    ->where('tenant_id', $tenant->id)
+                    ->orderBy('id')
+                    ->take(2)
+                    ->update(['teacher_id' => $demoTeacher->id]);
+            }
         });
     }
 

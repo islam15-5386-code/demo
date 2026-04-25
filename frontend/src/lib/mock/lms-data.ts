@@ -42,9 +42,13 @@ export type Lesson = {
   id: string;
   title: string;
   type: LessonType;
+  contentUrl?: string | null;
+  contentMime?: string | null;
+  contentOriginalName?: string | null;
   durationMinutes: number;
   releaseAt: string;
   completedBy: string[];
+  isCompleted?: boolean;
 };
 
 export type CourseModule = {
@@ -176,6 +180,34 @@ export type BillingState = {
   overagePerSeat: number;
 };
 
+export type Enrollment = {
+  id: string;
+  tenantId?: string;
+  vendorId?: string;
+  courseId: string;
+  courseTitle?: string;
+  studentId: string;
+  studentName?: string;
+  status: "active" | "completed" | "pending" | "cancelled";
+  progressPercentage: number;
+  enrolledAt?: string;
+  completedAt?: string | null;
+};
+
+export type Invoice = {
+  id: string;
+  tenantId?: string;
+  vendorId?: string;
+  billingProfileId?: string;
+  invoiceNumber: string;
+  amountBdt: number;
+  billingPeriod: string;
+  issuedAt?: string;
+  dueAt?: string;
+  paidAt?: string | null;
+  paymentStatus: string;
+};
+
 export type VendorSummary = {
   id: string;
   vendorId: string;
@@ -197,6 +229,7 @@ export type MockLmsState = {
   branding: TenantBranding;
   users: UserProfile[];
   courses: Course[];
+  enrollments: Enrollment[];
   assessments: Assessment[];
   submissions: Submission[];
   liveClasses: LiveClass[];
@@ -204,6 +237,7 @@ export type MockLmsState = {
   notifications: NotificationItem[];
   auditEvents: AuditEvent[];
   complianceRecords: ComplianceRecord[];
+  invoices: Invoice[];
   billing: BillingState;
 };
 
@@ -362,16 +396,16 @@ export const seedState: MockLmsState = {
   branding: {
     tenantId: "tenant-betopia",
     vendorId: "tenant-betopia",
-    tenantName: "Smart LMS Academy",
-    vendorName: "Smart LMS Academy",
-    subdomain: "betopia.smartlms.io",
-    vendorSubdomain: "betopia.smartlms.io",
+    tenantName: "Daffodil International University",
+    vendorName: "Daffodil International University",
+    subdomain: "daffodil",
+    vendorSubdomain: "daffodil",
     city: "Dhaka",
-    logoText: "BA",
-    primaryColor: "#0f766e",
-    accentColor: "#f97316",
-    supportEmail: "support@betopiaacademy.com",
-    customDomain: "learn.betopiaacademy.com",
+    logoText: "DIU",
+    primaryColor: "#6d28d9",
+    accentColor: "#16a34a",
+    supportEmail: "support@daffodil.edu.bd",
+    customDomain: "learn.daffodil.edu.bd",
     planType: "Growth",
     status: "active",
     vendorStatus: "active"
@@ -460,7 +494,7 @@ export const seedState: MockLmsState = {
               type: "assignment",
               durationMinutes: 22,
               releaseAt: isoDate(2, 9),
-              completedBy: []
+              completedBy: ["Rafi Khan"]
             }
           ]
         }
@@ -493,6 +527,7 @@ export const seedState: MockLmsState = {
       ]
     }
   ],
+  enrollments: [],
   assessments: [
     {
       id: "assessment-1",
@@ -562,6 +597,16 @@ export const seedState: MockLmsState = {
     }
   ],
   certificates: [
+    {
+      id: "certificate-0",
+      studentName: "Rafi Khan",
+      courseId: "course-ai",
+      courseTitle: "AI Instructor Studio",
+      issuedAt: isoDate(-2, 10),
+      certificateNumber: "CERT-20260423-00001-00002",
+      verificationCode: "BETO-CERT-5418",
+      revoked: false
+    },
     {
       id: "certificate-1",
       studentName: "Maya Sultana",
@@ -638,6 +683,7 @@ export const seedState: MockLmsState = {
       certified: true
     }
   ],
+  invoices: [],
   billing: {
     plan: "Growth",
     activeStudents: 412,

@@ -38,7 +38,7 @@ class CertificateController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
 
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
@@ -77,7 +77,7 @@ class CertificateController extends Controller
 
     public function revoke(Request $request, Certificate $certificate): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['admin', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin']);
 
         abort_if($certificate->course?->tenant_id !== $user->tenant_id, 404, 'Certificate not found.');
 

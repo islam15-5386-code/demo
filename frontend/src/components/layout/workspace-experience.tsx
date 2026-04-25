@@ -11,13 +11,19 @@ import { seatUtilizationPercent } from "@/lib/mock-lms";
 import { dashboardPathForRole, useMockLms } from "@/providers/mock-lms-provider";
 
 import {
+  AdminAiToolsPanel,
+  AdminAssessmentsPanel,
   AuditPanel,
   BillingStudio,
   BrandingPanel,
   CertificatesPanel,
   CompliancePanel,
+  EnrollmentManagementPanel,
+  InstituteSettingsPanel,
+  LiveClassMonitorPanel,
   NotificationsPanel,
   PlanManagementPanel,
+  UserDirectoryPanel,
   SeatUtilizationPanel
 } from "@/components/admin/admin-panels";
 import { pageFrame, Badge, MetricGrid, Section, WorkspaceHero } from "@/components/shared/lms-core";
@@ -31,9 +37,14 @@ import {
 } from "@/components/student/student-panels";
 import {
   AssessmentLab,
+  ContentUploadsPanel,
+  EssayEvaluationPanel,
   CourseWorkbench,
   LiveClassesPanel,
+  TeacherAnnouncementsPanel,
   TeacherDashboardPanel,
+  TeacherAssessmentsPanel,
+  TeacherMessagesPanel,
   TeacherSettingsPanel,
   TeacherStudentPerformancePanel,
   TeacherSubmissionsPanel
@@ -150,10 +161,18 @@ export function WorkspaceExperience({
   if (role === "admin") {
     if (joined === "branding") {
       content = <BrandingPanel />;
+    } else if (joined === "tenants" || joined === "institute-settings" || joined === "settings") {
+      content = <InstituteSettingsPanel />;
     } else if (joined === "courses") {
       content = <CourseWorkbench />;
+    } else if (joined === "enrollments") {
+      content = <EnrollmentManagementPanel />;
+    } else if (joined === "assessments") {
+      content = <AdminAssessmentsPanel />;
+    } else if (joined === "ai-tools") {
+      content = <AdminAiToolsPanel />;
     } else if (joined === "live-classes") {
-      content = <LiveClassesPanel />;
+      content = <LiveClassMonitorPanel />;
     } else if (joined === "reports/compliance") {
       content = <CompliancePanel />;
     } else if (joined === "certificates") {
@@ -165,12 +184,12 @@ export function WorkspaceExperience({
     } else if (joined === "audit-logs") {
       content = <AuditPanel />;
     } else if (joined === "users") {
-      content = <GenericRoster title="Platform users" users={state.users} />;
+      content = <UserDirectoryPanel />;
     } else if (joined === "teachers") {
-      content = <GenericRoster title="Teacher roster" users={state.users.filter((user) => user.role === "teacher")} />;
+      content = <UserDirectoryPanel roleFilter="teacher" />;
     } else if (joined === "students") {
-      content = <GenericRoster title="Student roster" users={state.users.filter((user) => user.role === "student")} />;
-    } else if (joined === "tenants" || joined === "settings" || joined === "reports" || joined === "dashboard" || joined === "") {
+      content = <UserDirectoryPanel roleFilter="student" />;
+    } else if (joined === "reports" || joined === "dashboard" || joined === "") {
       content = (
         <div className="grid gap-6">
           <MetricGrid
@@ -183,10 +202,15 @@ export function WorkspaceExperience({
           />
           <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
             <div className="grid gap-6">
+              <InstituteSettingsPanel />
               <BrandingPanel />
+              <EnrollmentManagementPanel />
               <SeatUtilizationPanel />
             </div>
-            <PlanManagementPanel />
+            <div className="grid gap-6">
+              <PlanManagementPanel />
+              <AdminAiToolsPanel />
+            </div>
           </div>
         </div>
       );
@@ -197,14 +221,24 @@ export function WorkspaceExperience({
     if (joined === "courses" || joined === "courses/new" || joined.endsWith("/edit") || joined.startsWith("courses/")) {
       const specificCourseId = segments[1];
       content = <CourseWorkbench defaultCourseId={specificCourseId} />;
+    } else if (joined === "modules-lessons" || joined === "content-uploads") {
+      content = <ContentUploadsPanel />;
     } else if (joined === "assessments" || joined === "assessments/ai-generate" || joined === "assessments/review") {
       content = <AssessmentLab reviewMode={joined === "assessments/review"} />;
+    } else if (joined === "assignments") {
+      content = <TeacherAssessmentsPanel />;
     } else if (joined === "submissions") {
       content = <TeacherSubmissionsPanel />;
+    } else if (joined === "essay-evaluation") {
+      content = <EssayEvaluationPanel />;
     } else if (joined === "live-classes" || joined === "live-classes/new" || joined.startsWith("live-classes/")) {
       content = <LiveClassesPanel />;
     } else if (joined === "students") {
       content = <TeacherStudentPerformancePanel />;
+    } else if (joined === "announcements") {
+      content = <TeacherAnnouncementsPanel />;
+    } else if (joined === "messages") {
+      content = <TeacherMessagesPanel />;
     } else if (joined === "settings") {
       content = <TeacherSettingsPanel />;
     } else {

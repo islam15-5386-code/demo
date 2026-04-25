@@ -12,11 +12,9 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            'super_admin' => 'Platform Super Admin',
-            'tenant_admin' => 'Institute Admin',
+            'admin' => 'Institute Admin',
             'teacher' => 'Teacher',
             'student' => 'Student',
-            'hr_manager' => 'HR Manager',
         ];
 
         foreach ($roles as $name => $label) {
@@ -25,6 +23,8 @@ class RolePermissionSeeder extends Seeder
                 ['label' => $label, 'guard_name' => 'web']
             );
         }
+
+        Role::query()->whereNotIn('name', array_keys($roles))->delete();
 
         foreach (BangladeshLmsDataset::permissions() as $name => $label) {
             Permission::query()->updateOrCreate(
@@ -36,7 +36,12 @@ class RolePermissionSeeder extends Seeder
         $permissionIdsByName = Permission::query()->pluck('id', 'name');
 
         foreach (BangladeshLmsDataset::rolePermissions() as $roleName => $permissions) {
-            $role = Role::query()->where('name', $roleName)->firstOrFail();
+            $role = Role::query()->where('name', $roleName)->first();
+
+            if ($role === null) {
+                continue;
+            }
+
             $role->permissions()->sync(
                 collect($permissions)
                     ->map(fn (string $permissionName): ?int => $permissionIdsByName[$permissionName] ?? null)

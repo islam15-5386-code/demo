@@ -31,7 +31,6 @@ import {
   TextInput,
   pageFrame
 } from "@/components/shared/lms-core";
-import SmartLMSHomePage from "@/components/marketing/smart-lms-homepage";
 
 const catalogSlugMap: Record<string, string> = {
   "future-of-product-teams": "course-product",
@@ -338,13 +337,16 @@ function GenericMarketing({ slug }: { slug: string }) {
 }
 
 export function HomeExperience() {
-  return <SmartLMSHomePage />;
-
   const { state, resetDemo } = useMockLms();
   const activeLearners = state.billing.activeStudents;
   const publishedCourses = state.courses.filter((course) => course.status === "published").length;
   const totalLessons = state.courses.reduce((total, course) => total + course.modules.reduce((sum, module) => sum + module.lessons.length, 0), 0);
   const featuredCourses = state.courses.slice(0, 3);
+  const featuredCourseImages = [
+    "/online-class-desktop.jpg",
+    "/online-class-laptop.jpg",
+    "/hero-learning-meeting.jpg"
+  ];
 
   return (
     <>
@@ -429,7 +431,13 @@ export function HomeExperience() {
           {featuredCourses.map((course, index) => (
             <Link key={course.id} href={`/catalog/${Object.entries(catalogSlugMap).find(([, value]) => value === course.id)?.[0] ?? course.id}`} className={`group rounded-[8px] border bg-white p-3 shadow-soft transition hover:-translate-y-1 dark:bg-[#13212a] ${index === 1 ? "border-[#ffa10a]/55" : "border-[#A6ABB5]"}`}>
               <div className="h-40 overflow-hidden rounded-[6px]">
-                <Image src="/hero-learning-meeting.jpg" alt={course.title} width={760} height={460} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <Image
+                  src={featuredCourseImages[index] ?? "/hero-learning-meeting.jpg"}
+                  alt={course.title}
+                  width={760}
+                  height={460}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
               </div>
               <div className="px-1 py-3">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ffa10a]">{course.category}</p>
@@ -442,8 +450,8 @@ export function HomeExperience() {
       </section>
 
       <section className="bg-white/70 py-20 dark:bg-white/[0.03]">
-        <div className={`${pageFrame} grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center`}>
-          <div className="relative min-h-[360px]">
+        <div className={`${pageFrame} grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center xl:gap-10`}>
+          <div className="relative min-h-[360px] lg:max-w-[30rem]">
             <div className="absolute left-0 top-8 h-64 w-64 overflow-hidden rounded-[10px] shadow-glow sm:h-80 sm:w-80">
               <Image src="/hero-learning-meeting.jpg" alt="Smart LMS learning workspace" width={900} height={900} className="h-full w-full object-cover" />
             </div>

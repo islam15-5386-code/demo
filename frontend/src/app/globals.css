@@ -158,6 +158,41 @@
   .hero-delay-3 {
     animation-delay: 320ms;
   }
+
+  .workspace-reveal {
+    animation: workspace-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .workspace-delay-1 {
+    animation-delay: 120ms;
+  }
+
+  .workspace-delay-2 {
+    animation-delay: 220ms;
+  }
+
+  .workspace-delay-3 {
+    animation-delay: 320ms;
+  }
+
+  .ambient-float {
+    animation: ambient-float 7s ease-in-out infinite;
+  }
+
+  .soft-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .soft-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 24%, rgba(255, 255, 255, 0.42) 50%, transparent 76%);
+    transform: translateX(-130%);
+    animation: soft-shimmer 6s ease-in-out infinite;
+    pointer-events: none;
+  }
 }
 
 @keyframes hero-fade-up {
@@ -194,10 +229,50 @@
   }
 }
 
+@keyframes workspace-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ambient-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes soft-shimmer {
+  0%,
+  100% {
+    transform: translateX(-130%);
+  }
+
+  55% {
+    transform: translateX(130%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-fade-up,
   .hero-float,
   .hero-glow,
+  .workspace-reveal,
+  .workspace-delay-1,
+  .workspace-delay-2,
+  .workspace-delay-3,
+  .ambient-float,
+  .soft-shimmer::after,
   .hero-delay-1,
   .hero-delay-2,
   .hero-delay-3 {

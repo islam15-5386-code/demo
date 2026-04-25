@@ -31,7 +31,9 @@ import {
   createLiveClassOnBackend,
   fetchAuthenticatedBootstrap,
   fetchAuthenticatedProfile,
+  generateTeacherAssessmentDraft,
   issueCertificateOnBackend,
+  publishTeacherAssessment,
   publishCourseOnBackend,
   revokeCertificateOnBackend,
   registerToBackend,
@@ -41,6 +43,7 @@ import {
   submitAssessmentOnBackend,
   updateBillingOnBackend,
   updateLiveClassStatusOnBackend,
+  uploadLessonContentOnBackend,
   updateTenantBrandingOnBackend
 } from "@/lib/api/lms-backend";
 
@@ -57,6 +60,7 @@ type CreateAssessmentPayload = {
   type: AssessmentType;
   sourceText: string;
   count: number;
+  fallbackBankId?: string;
   generatedFromLabel?: string;
   usedFallbackBank?: boolean;
 };
@@ -86,6 +90,7 @@ type MockLmsContextType = {
     moduleId: string,
     lesson: { title: string; type: "video" | "document" | "quiz" | "assignment" | "live"; durationMinutes: number }
   ) => Promise<void>;
+  uploadLessonContent: (courseId: string, moduleId: string, lessonId: string, file: File) => Promise<void>;
   markLessonComplete: (courseId: string, lessonId: string, studentName?: string) => Promise<void>;
   createAssessmentDraft: (payload: CreateAssessmentPayload) => Promise<void>;
   publishAssessment: (assessmentId: string) => Promise<void>;
@@ -142,6 +147,36 @@ function buildLocalMeetingUrl(title: string) {
   return `https://meet.jit.si/SmartLMS-${roomName || "Live-Class"}`;
 }
 
+function resolveAutoLiveStatus(liveClass: MockLmsState["liveClasses"][number], nowMs: number) {
+  if (liveClass.status === "recorded") {
+    return "recorded" as const;
+  }
+
+  const startMs = Date.parse(liveClass.startAt);
+
+  if (Number.isNaN(startMs)) {
+    return liveClass.status;
+  }
+
+  const endMs = startMs + liveClass.durationMinutes * 60 * 1000;
+
+  if (nowMs >= startMs && nowMs <= endMs) {
+    return "live" as const;
+  }
+
+  return liveClass.status;
+}
+
+function withAutoLiveClasses(currentState: MockLmsState, nowMs: number): MockLmsState {
+  return {
+    ...currentState,
+    liveClasses: currentState.liveClasses.map((liveClass) => ({
+      ...liveClass,
+      status: resolveAutoLiveStatus(liveClass, nowMs)
+    }))
+  };
+}
+
 function normalizeState(partial?: Partial<MockLmsState>): MockLmsState {
   return {
     ...seedState,
@@ -149,6 +184,7 @@ function normalizeState(partial?: Partial<MockLmsState>): MockLmsState {
     branding: partial?.branding ?? seedState.branding,
     users: partial?.users ?? seedState.users,
     courses: partial?.courses ?? seedState.courses,
+    enrollments: partial?.enrollments ?? seedState.enrollments,
     assessments: partial?.assessments ?? seedState.assessments,
     submissions: partial?.submissions ?? seedState.submissions,
     liveClasses: partial?.liveClasses ?? seedState.liveClasses,
@@ -156,6 +192,7 @@ function normalizeState(partial?: Partial<MockLmsState>): MockLmsState {
     notifications: partial?.notifications ?? seedState.notifications,
     auditEvents: partial?.auditEvents ?? seedState.auditEvents,
     complianceRecords: partial?.complianceRecords ?? seedState.complianceRecords,
+    invoices: partial?.invoices ?? seedState.invoices,
     billing: partial?.billing ?? seedState.billing
   };
 }
@@ -178,6 +215,7 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<MockLmsState>(seedState);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [liveClock, setLiveClock] = useState(() => Date.now());
 
   useEffect(() => {
     let cancelled = false;
@@ -216,13 +254,25 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setLiveClock(Date.now());
+    }, 30_000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
+
   async function refreshBackendState() {
     const bootstrap = await fetchAuthenticatedBootstrap();
     setState(normalizeState(bootstrap));
   }
 
+  const derivedState = useMemo(() => withAutoLiveClasses(state, liveClock), [liveClock, state]);
+
   const value: MockLmsContextType = useMemo(() => ({
-    state,
+    state: derivedState,
     currentUser,
     authReady,
     isAuthenticated: currentUser !== null,
@@ -244,6 +294,7 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
     },
     async signUp(name, email, password, role) {
       const session = await registerToBackend(name, email, password, role);
+      const bootstrap = await fetchAuthenticatedBootstrap();
       const nextUser = {
         ...session.user,
         role: roleForApp(session.user.role)
@@ -251,9 +302,9 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
 
       setCurrentUser(nextUser);
       setState(normalizeState({
-        ...session.bootstrap,
-        branding: session.bootstrap.branding ?? session.branding ?? seedState.branding,
-        users: session.bootstrap.users ?? [nextUser]
+        ...bootstrap,
+        branding: bootstrap.branding ?? session.branding ?? seedState.branding,
+        users: bootstrap.users ?? [nextUser]
       }));
 
       return nextUser;
@@ -400,6 +451,41 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
         )
       }));
     },
+    async uploadLessonContent(courseId, moduleId, lessonId, file) {
+      if (currentUser) {
+        await uploadLessonContentOnBackend(courseId, moduleId, lessonId, file);
+        await refreshBackendState();
+        return;
+      }
+
+      setState((current) => ({
+        ...current,
+        courses: current.courses.map((course) =>
+          course.id === courseId
+            ? {
+                ...course,
+                modules: course.modules.map((module) =>
+                  module.id === moduleId
+                    ? {
+                        ...module,
+                        lessons: module.lessons.map((lesson) =>
+                          lesson.id === lessonId
+                            ? {
+                                ...lesson,
+                                contentUrl: URL.createObjectURL(file),
+                                contentMime: file.type,
+                                contentOriginalName: file.name
+                              }
+                            : lesson
+                        )
+                      }
+                    : module
+                )
+              }
+            : course
+        )
+      }));
+    },
     async markLessonComplete(courseId, lessonId, studentName) {
       if (currentUser) {
         await completeLessonOnBackend(courseId, lessonId);
@@ -459,6 +545,19 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
       });
     },
     async createAssessmentDraft(payload) {
+      if (currentUser) {
+        await generateTeacherAssessmentDraft({
+          courseId: payload.courseId,
+          title: payload.title,
+          type: payload.type,
+          count: payload.count,
+          sourceText: payload.sourceText,
+          fallbackBankId: payload.usedFallbackBank ? payload.fallbackBankId : undefined
+        });
+        await refreshBackendState();
+        return;
+      }
+
       setState((current) => ({
         ...current,
         assessments: [
@@ -498,6 +597,12 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
       }));
     },
     async publishAssessment(assessmentId) {
+      if (currentUser) {
+        await publishTeacherAssessment(assessmentId);
+        await refreshBackendState();
+        return;
+      }
+
       setState((current) => ({
         ...current,
         assessments: current.assessments.map((assessment) =>
@@ -777,7 +882,7 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
         };
       });
     }
-  }), [authReady, currentUser, state]);
+  }), [authReady, currentUser, derivedState, state]);
 
   return <MockLmsContext.Provider value={value}>{children}</MockLmsContext.Provider>;
 }

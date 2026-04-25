@@ -4,13 +4,17 @@ import type {
   Assessment,
   Course,
   FallbackQuestionBankItem,
+  LiveClass,
   MockLmsState,
   TenantBranding,
   UserProfile,
   VendorSummary
 } from "@/lib/mock-lms";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_LMS_API_URL ?? "http://127.0.0.1:8000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  process.env.NEXT_PUBLIC_LMS_API_URL ??
+  "http://127.0.0.1:8000/api";
 const TOKEN_STORAGE_KEY = "betopia-auth-token";
 
 type JsonValue = Record<string, unknown>;
@@ -37,7 +41,11 @@ type UploadNoteResult = {
 };
 
 type BackendAuthResponse = {
-  token: string;
+  token?: string;
+  access_token?: string;
+  token_type?: string;
+  role?: string;
+  tenant_id?: string | number | null;
   user: UserProfile;
   branding: TenantBranding | null;
   vendor?: VendorSummary | null;
@@ -45,7 +53,14 @@ type BackendAuthResponse = {
 };
 
 function apiUrl(path: string) {
-  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const normalizedBaseUrl = API_BASE_URL.replace(/\/+$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (normalizedBaseUrl.endsWith("/api") && normalizedPath.startsWith("/api/")) {
+    return `${normalizedBaseUrl}${normalizedPath.slice(4)}`;
+  }
+
+  return `${normalizedBaseUrl}${normalizedPath}`;
 }
 
 function normalizeRole(role: unknown): UserProfile["role"] {
@@ -92,9 +107,13 @@ function normalizeCourse(course: Record<string, unknown>): Course {
                 id: String(lesson.id),
                 title: String(lesson.title ?? ""),
                 type: (lesson.type as Course["modules"][number]["lessons"][number]["type"]) ?? "video",
+                contentUrl: lesson.contentUrl ? String(lesson.contentUrl) : null,
+                contentMime: lesson.contentMime ? String(lesson.contentMime) : null,
+                contentOriginalName: lesson.contentOriginalName ? String(lesson.contentOriginalName) : null,
                 durationMinutes: Number(lesson.durationMinutes ?? 0),
                 releaseAt: String(lesson.releaseAt ?? ""),
-                completedBy: Array.isArray(lesson.completedBy) ? (lesson.completedBy as string[]) : []
+                completedBy: Array.isArray(lesson.completedBy) ? (lesson.completedBy as string[]) : [],
+                isCompleted: Boolean(lesson.isCompleted)
               }))
             : []
         }))
@@ -126,14 +145,22 @@ function normalizeAssessment(assessment: Record<string, unknown>): Assessment {
   };
 }
 
-function normalizeLiveClass(liveClass: Record<string, unknown>) {
+function normalizeLiveClass(liveClass: Record<string, unknown>): LiveClass {
+  const startAt = String(liveClass.startAt ?? liveClass.scheduledAt ?? "");
+  const normalizedStatus =
+    String(liveClass.status ?? "scheduled") === "live"
+      ? "live"
+      : String(liveClass.status ?? "scheduled") === "recorded"
+        ? "recorded"
+        : "scheduled";
+
   return {
     id: String(liveClass.id),
     tenantId: liveClass.tenantId ? String(liveClass.tenantId) : undefined,
     vendorId: liveClass.vendorId ? String(liveClass.vendorId) : undefined,
     title: String(liveClass.title ?? ""),
     courseId: String(liveClass.courseId ?? ""),
-    startAt: String(liveClass.startAt ?? ""),
+    startAt,
     durationMinutes: Number(liveClass.durationMinutes ?? 0),
     participantLimit: Number(liveClass.participantLimit ?? 0),
     provider: "Jitsi" as const,
@@ -141,7 +168,7 @@ function normalizeLiveClass(liveClass: Record<string, unknown>) {
     recordingUrl: liveClass.recordingUrl ? String(liveClass.recordingUrl) : null,
     reminder24h: Boolean(liveClass.reminder24h),
     reminder1h: Boolean(liveClass.reminder1h),
-    status: (liveClass.status as "scheduled" | "live" | "recorded") ?? "scheduled"
+    status: normalizedStatus
   };
 }
 
@@ -203,6 +230,7 @@ function normalizeState(state: Partial<MockLmsState> | null | undefined): Partia
     branding: state.branding ? normalizeBranding(state.branding as unknown as Record<string, unknown>) : undefined,
     users: Array.isArray(state.users) ? state.users.map((user) => normalizeUser(user as unknown as Record<string, unknown>)) : [],
     courses: Array.isArray(state.courses) ? state.courses.map((course) => normalizeCourse(course as unknown as Record<string, unknown>)) : [],
+    enrollments: Array.isArray(state.enrollments) ? (state.enrollments as MockLmsState["enrollments"]) : [],
     assessments: Array.isArray(state.assessments)
       ? state.assessments.map((assessment) => normalizeAssessment(assessment as unknown as Record<string, unknown>))
       : [],
@@ -214,6 +242,7 @@ function normalizeState(state: Partial<MockLmsState> | null | undefined): Partia
     notifications: Array.isArray(state.notifications) ? (state.notifications as MockLmsState["notifications"]) : [],
     auditEvents: Array.isArray(state.auditEvents) ? (state.auditEvents as MockLmsState["auditEvents"]) : [],
     complianceRecords: Array.isArray(state.complianceRecords) ? (state.complianceRecords as MockLmsState["complianceRecords"]) : [],
+    invoices: Array.isArray(state.invoices) ? (state.invoices as MockLmsState["invoices"]) : [],
     billing: state.billing as MockLmsState["billing"] | undefined
   };
 }
@@ -312,10 +341,16 @@ export async function signInToBackend(email: string, password: string) {
   }
 
   const payload = await unwrapResponse<BackendAuthResponse>(response);
-  storeToken(payload.token);
+  const accessToken = payload.access_token ?? payload.token;
+
+  if (!accessToken) {
+    throw new Error("Backend login response is missing access token.");
+  }
+
+  storeToken(accessToken);
 
   return {
-    token: payload.token,
+    token: accessToken,
     user: normalizeUser(payload.user as unknown as Record<string, unknown>),
     branding: payload.branding ? normalizeBranding(payload.branding as unknown as Record<string, unknown>) : null,
     vendor: payload.vendor ? normalizeVendor(payload.vendor as unknown as Record<string, unknown>) : null,
@@ -345,10 +380,16 @@ export async function registerToBackend(
   }
 
   const payload = await unwrapResponse<BackendAuthResponse>(response);
-  storeToken(payload.token);
+  const accessToken = payload.access_token ?? payload.token;
+
+  if (!accessToken) {
+    throw new Error("Backend registration response is missing access token.");
+  }
+
+  storeToken(accessToken);
 
   return {
-    token: payload.token,
+    token: accessToken,
     user: normalizeUser(payload.user as unknown as Record<string, unknown>),
     branding: payload.branding ? normalizeBranding(payload.branding as unknown as Record<string, unknown>) : null,
     vendor: payload.vendor ? normalizeVendor(payload.vendor as unknown as Record<string, unknown>) : null,
@@ -539,6 +580,23 @@ export async function addCourseLessonOnBackend(
   return unwrapResponse<{ data: unknown }>(response);
 }
 
+export async function uploadLessonContentOnBackend(
+  courseId: string,
+  moduleId: string,
+  lessonId: string,
+  file: File
+) {
+  const formData = new FormData();
+  formData.append("content", file);
+
+  const response = await apiFetch(`/api/v1/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/content`, {
+    method: "POST",
+    body: formData
+  });
+
+  return unwrapResponse<{ data: unknown }>(response);
+}
+
 export async function completeLessonOnBackend(courseId: string, lessonId: string) {
   const response = await apiFetch(`/api/v1/courses/${courseId}/lessons/${lessonId}/complete`, {
     method: "POST"
@@ -558,7 +616,7 @@ export async function createLiveClassOnBackend(payload: {
     body: JSON.stringify({
       title: payload.title,
       course_id: Number(payload.courseId),
-      start_at: payload.startAt,
+      scheduled_at: payload.startAt,
       duration_minutes: payload.durationMinutes
     })
   });

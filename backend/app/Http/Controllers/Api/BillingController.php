@@ -14,7 +14,7 @@ class BillingController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager'])->loadMissing('tenant.billingProfile');
+        $user = $this->authorizeRoles($request, ['admin'])->loadMissing('tenant.billingProfile');
 
         return response()->json([
             'data' => LmsSupport::serializeBilling($user->tenant?->billingProfile),
@@ -24,7 +24,7 @@ class BillingController extends Controller
 
     public function update(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['admin', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin']);
         $user->loadMissing('tenant');
 
         abort_if($user->tenant === null, 404, 'Tenant not found.');

@@ -20,10 +20,13 @@ use App\Models\Submission;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class LmsSupport
 {
+    private static ?array $notificationColumns = null;
+
     public static function plans(): array
     {
         return config('lms.plans', []);
@@ -433,25 +436,66 @@ class LmsSupport
 
     public static function serializeLiveClass(LiveClass $liveClass): array
     {
-        $liveClass->loadMissing('course:id,tenant_id');
+        $liveClass->loadMissing(['course:id,tenant_id', 'participants:id,live_class_id,student_id,joined_at,left_at', 'recordings:id,live_class_id,recording_url,duration_seconds,duration']);
+        $scheduledAt = $liveClass->scheduled_at ?? $liveClass->start_at;
+        $status = self::resolveLiveClassStatus($liveClass);
 
         return [
             'id' => $liveClass->id,
-            'tenantId' => $liveClass->course?->tenant_id,
-            'vendorId' => $liveClass->course?->tenant_id,
+            'tenantId' => $liveClass->tenant_id ?? $liveClass->course?->tenant_id,
+            'vendorId' => $liveClass->tenant_id ?? $liveClass->course?->tenant_id,
             'title' => $liveClass->title,
+            'description' => $liveClass->description,
             'courseId' => $liveClass->course_id,
             'teacherId' => $liveClass->teacher_id,
-            'startAt' => optional($liveClass->start_at)->toIso8601String(),
+            'roomSlug' => $liveClass->room_slug,
+            'scheduledAt' => optional($scheduledAt)->toIso8601String(),
+            'startAt' => optional($scheduledAt)->toIso8601String(),
             'durationMinutes' => $liveClass->duration_minutes,
             'participantLimit' => $liveClass->participant_limit,
+            'participantCount' => $liveClass->participants->count(),
             'provider' => $liveClass->provider,
             'meetingUrl' => $liveClass->meeting_url,
             'recordingUrl' => $liveClass->recording_url,
             'reminder24h' => $liveClass->reminder_24h,
             'reminder1h' => $liveClass->reminder_1h,
-            'status' => $liveClass->status,
+            'reminder24hSent' => $liveClass->reminder_24h_sent,
+            'reminder1hSent' => $liveClass->reminder_1h_sent,
+            'status' => $status,
+            'participants' => $liveClass->participants->map(fn ($participant): array => [
+                'id' => $participant->id,
+                'studentId' => $participant->student_id,
+                'joinedAt' => optional($participant->joined_at)->toIso8601String(),
+                'leftAt' => optional($participant->left_at)->toIso8601String(),
+            ])->all(),
+            'recordings' => $liveClass->recordings->map(fn ($recording): array => [
+                'id' => $recording->id,
+                'recordingUrl' => $recording->recording_url,
+                'durationSeconds' => $recording->duration_seconds ?? $recording->duration,
+            ])->all(),
         ];
+    }
+
+    public static function resolveLiveClassStatus(LiveClass $liveClass): string
+    {
+        if ($liveClass->status === 'recorded') {
+            return 'recorded';
+        }
+
+        $scheduledAt = $liveClass->scheduled_at ?? $liveClass->start_at;
+
+        if ($scheduledAt === null) {
+            return $liveClass->status;
+        }
+
+        $startsAt = $scheduledAt->copy();
+        $endsAt = $startsAt->copy()->addMinutes((int) ($liveClass->duration_minutes ?? 0));
+
+        if (now()->between($startsAt, $endsAt)) {
+            return 'live';
+        }
+
+        return $liveClass->status;
     }
 
     public static function serializeCertificate(Certificate $certificate): array
@@ -479,9 +523,13 @@ class LmsSupport
             'id' => $notification->id,
             'tenantId' => $notification->tenant_id,
             'vendorId' => $notification->tenant_id,
+            'userId' => $notification->user_id,
+            'title' => $notification->title,
             'audience' => $notification->audience,
             'type' => $notification->type,
             'message' => $notification->message,
+            'isRead' => $notification->is_read,
+            'sentAt' => optional($notification->sent_at)->toIso8601String(),
             'createdAt' => optional($notification->created_at)->toIso8601String(),
         ];
     }
@@ -647,12 +695,35 @@ class LmsSupport
 
     public static function notify(?Tenant $tenant, string $audience, string $type, string $message): Notification
     {
-        return Notification::create([
+        $payload = [
             'tenant_id' => $tenant?->id,
             'audience' => $audience,
             'type' => $type,
             'message' => $message,
-        ]);
+        ];
+
+        if (self::notificationHasColumn('title')) {
+            $payload['title'] = 'Smart LMS Notification';
+        }
+
+        if (self::notificationHasColumn('is_read')) {
+            $payload['is_read'] = false;
+        }
+
+        if (self::notificationHasColumn('sent_at')) {
+            $payload['sent_at'] = now();
+        }
+
+        return Notification::create($payload);
+    }
+
+    public static function notificationHasColumn(string $column): bool
+    {
+        if (self::$notificationColumns === null) {
+            self::$notificationColumns = Schema::getColumnListing('notifications');
+        }
+
+        return in_array($column, self::$notificationColumns, true);
     }
 
     public static function verificationCode(): string

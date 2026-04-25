@@ -15,7 +15,7 @@ class ComplianceController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
 
         $records = $this->recordsQuery($user, $request)
             ->orderBy('employee_name')
@@ -34,7 +34,7 @@ class ComplianceController extends Controller
 
     public function exportCsv(Request $request)
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
 
         $records = $this->recordsQuery($user, $request)
             ->orderBy('employee_name')
@@ -50,7 +50,7 @@ class ComplianceController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
 
         $records = $this->recordsQuery($user, $request)
             ->orderBy('employee_name')
@@ -78,7 +78,7 @@ class ComplianceController extends Controller
 
     public function sendReminders(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
 
         $validated = $request->validate([
             'record_ids' => ['nullable', 'array'],

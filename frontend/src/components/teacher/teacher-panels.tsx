@@ -34,6 +34,7 @@ import {
   MetricGrid,
   PrimaryButton,
   SecondaryButton,
+  SeeMoreButton,
   Section,
   SelectInput,
   StatCard,
@@ -45,7 +46,7 @@ import {
 } from "@/components/shared/lms-core";
 
 export function CourseWorkbench({ defaultCourseId }: { defaultCourseId?: string }) {
-  const { state, createCourse, publishCourse, addModule, addLesson } = useMockLms();
+  const { state, createCourse, publishCourse, addModule, addLesson, uploadLessonContent } = useMockLms();
   const [courseForm, setCourseForm] = useState({
     title: "",
     category: "Operations",
@@ -56,9 +57,14 @@ export function CourseWorkbench({ defaultCourseId }: { defaultCourseId?: string 
   const [lessonTitle, setLessonTitle] = useState("");
   const [lessonType, setLessonType] = useState<"video" | "document" | "quiz" | "assignment" | "live">("video");
   const [lessonDuration, setLessonDuration] = useState(15);
+  const [uploadStatus, setUploadStatus] = useState("");
 
   const selectedCourse = state.courses.find((course) => course.id === defaultCourseId) ?? state.courses[0];
   const selectedModule = selectedCourse?.modules[0];
+  const [showAllLessonUploads, setShowAllLessonUploads] = useState(false);
+  const [showAllPortfolioCourses, setShowAllPortfolioCourses] = useState(false);
+  const visibleLessonUploads = showAllLessonUploads ? (selectedModule?.lessons ?? []) : (selectedModule?.lessons ?? []).slice(0, 5);
+  const visiblePortfolioCourses = showAllPortfolioCourses ? state.courses : state.courses.slice(0, 3);
 
   return (
     <div className="grid gap-7 xl:grid-cols-[0.95fr_1.05fr]">
@@ -136,6 +142,44 @@ export function CourseWorkbench({ defaultCourseId }: { defaultCourseId?: string 
                 >
                   Add lesson
                 </SecondaryButton>
+                {selectedModule.lessons.length ? (
+                  <div className="grid gap-3 rounded-[16px] border border-foreground/10 bg-background/70 p-4 dark:border-white/8 dark:bg-white/5">
+                    <p className="text-sm font-semibold text-foreground">Lesson content uploads</p>
+                    <div className="grid gap-3">
+                      {visibleLessonUploads.map((lesson) => (
+                        <label key={lesson.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-foreground/10 bg-white px-4 py-3 text-sm dark:border-white/8 dark:bg-[#13212a]">
+                          <div>
+                            <p className="font-medium">{lesson.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {lesson.contentOriginalName ? `Attached: ${lesson.contentOriginalName}` : "No lesson file uploaded yet"}
+                            </p>
+                          </div>
+                          <input
+                            type="file"
+                            className="max-w-[15rem] text-xs"
+                            onChange={async (event) => {
+                              const file = event.target.files?.[0];
+                              if (!file) {
+                                return;
+                              }
+
+                              try {
+                                await uploadLessonContent(selectedCourse.id, selectedModule.id, lesson.id, file);
+                                setUploadStatus(`${file.name} uploaded to ${lesson.title}.`);
+                              } finally {
+                                event.target.value = "";
+                              }
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    {selectedModule.lessons.length > 5 ? (
+                      <SeeMoreButton expanded={showAllLessonUploads} remaining={selectedModule.lessons.length - 5} onClick={() => setShowAllLessonUploads((current) => !current)} />
+                    ) : null}
+                    {uploadStatus ? <p className="text-sm text-muted-foreground">{uploadStatus}</p> : null}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -144,7 +188,7 @@ export function CourseWorkbench({ defaultCourseId }: { defaultCourseId?: string 
 
       <Section title="Published portfolio" subtitle="Course status, content depth, pricing, and enrollment are all visible in one operational view.">
         <div className="grid gap-[14px]">
-          {state.courses.map((course) => (
+          {visiblePortfolioCourses.map((course) => (
             <div key={course.id} className="rounded-[24px] border border-foreground/10 bg-white p-5 shadow-soft transition duration-300 hover:-translate-y-[2px] hover:shadow-glow dark:border-white/8 dark:bg-[#13212a]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -164,8 +208,53 @@ export function CourseWorkbench({ defaultCourseId }: { defaultCourseId?: string 
             </div>
           ))}
         </div>
+        {state.courses.length > 3 ? (
+          <SeeMoreButton expanded={showAllPortfolioCourses} remaining={state.courses.length - 3} onClick={() => setShowAllPortfolioCourses((current) => !current)} />
+        ) : null}
       </Section>
     </div>
+  );
+}
+
+export function ContentUploadsPanel() {
+  const { state } = useMockLms();
+  const [showAllLessons, setShowAllLessons] = useState(false);
+  const lessons = state.courses.flatMap((course) =>
+    course.modules.flatMap((module) =>
+      module.lessons.map((lesson) => ({
+        courseTitle: course.title,
+        moduleTitle: module.title,
+        lesson
+      }))
+    )
+  );
+  const visibleLessons = showAllLessons ? lessons : lessons.slice(0, 5);
+
+  return (
+    <Section title="Content uploads" subtitle="Teacher lesson materials, media files, and assignment assets stay organized at the lesson level.">
+      <div className="grid gap-4">
+        {visibleLessons.map(({ courseTitle, moduleTitle, lesson }) => (
+          <div key={lesson.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">{lesson.title}</p>
+                <p className="text-sm text-muted-foreground">{courseTitle} · {moduleTitle}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{lesson.type}</Badge>
+                <Badge>{lesson.contentOriginalName ? "uploaded" : "pending upload"}</Badge>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {lesson.contentOriginalName
+                ? `Stored file: ${lesson.contentOriginalName}`
+                : "Use the Modules & Lessons workspace to attach PDF, DOCX, image, or media content to this lesson."}
+            </p>
+          </div>
+        ))}
+      </div>
+      {lessons.length > 5 ? <SeeMoreButton expanded={showAllLessons} remaining={lessons.length - 5} onClick={() => setShowAllLessons((current) => !current)} /> : null}
+    </Section>
   );
 }
 
@@ -199,9 +288,13 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
   const availableFallbackBanks = backendFallbackBanks.length ? backendFallbackBanks : fallbackQuestionBank;
   const drafts = availableAssessments.filter((assessment) => assessment.status === "draft");
   const published = availableAssessments.filter((assessment) => assessment.status === "published");
+  const [showAllDrafts, setShowAllDrafts] = useState(false);
+  const [showAllPublished, setShowAllPublished] = useState(false);
   const selectedFallback = availableFallbackBanks.find((item) => item.id === selectedFallbackId) ?? availableFallbackBanks[0];
   const latestDraft = drafts[0];
   const previousDraftCount = useRef(drafts.length);
+  const visibleDrafts = showAllDrafts ? drafts : drafts.slice(0, 5);
+  const visiblePublished = showAllPublished ? published : published.slice(0, 5);
 
   useEffect(() => {
     setActiveTab(reviewMode ? "review" : "generate");
@@ -343,6 +436,7 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
       createAssessmentDraft({
         ...effectiveForm,
         sourceText,
+        fallbackBankId: !hasManualOrUploadedNotes ? selectedFallback?.id : undefined,
         generatedFromLabel,
         usedFallbackBank: !hasManualOrUploadedNotes
       });
@@ -577,7 +671,7 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
           <Section title="Draft review queue" subtitle="Teachers can review, edit, or reject AI-generated assessments before publishing.">
             <div className="grid gap-4">
               {drafts.length ? (
-                drafts.map((assessment) => (
+                visibleDrafts.map((assessment) => (
                   <div key={assessment.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -602,11 +696,12 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
                 <p className="text-sm text-muted-foreground">No drafts yet. Generate one from the AI tab.</p>
               )}
             </div>
+            {drafts.length > 5 ? <SeeMoreButton expanded={showAllDrafts} remaining={drafts.length - 5} onClick={() => setShowAllDrafts((current) => !current)} /> : null}
           </Section>
 
           <Section title="Published assessments" subtitle="Published items are ready for students and feed directly into grading, compliance, and certification flows.">
             <div className="grid gap-4">
-              {published.map((assessment) => (
+              {visiblePublished.map((assessment) => (
                 <div key={assessment.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -619,6 +714,7 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
                 </div>
               ))}
             </div>
+            {published.length > 5 ? <SeeMoreButton expanded={showAllPublished} remaining={published.length - 5} onClick={() => setShowAllPublished((current) => !current)} /> : null}
           </Section>
         </div>
       </Tabs.Content>
@@ -628,12 +724,14 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
 
 export function LiveClassesPanel() {
   const { state, scheduleLiveClass, setLiveClassStatus } = useMockLms();
+  const [showAllLiveClasses, setShowAllLiveClasses] = useState(false);
   const [form, setForm] = useState({
     title: "New live session",
     courseId: state.courses[0]?.id ?? "",
     startAt: new Date().toISOString().slice(0, 16),
     durationMinutes: 60
   });
+  const visibleLiveClasses = showAllLiveClasses ? state.liveClasses : state.liveClasses.slice(0, 5);
 
   async function handleGoLive(classId: string, meetingUrl?: string | null) {
     await setLiveClassStatus(classId, "live");
@@ -665,7 +763,7 @@ export function LiveClassesPanel() {
 
       <Section title="Session timeline" subtitle="Host, go live, and mark recordings as available from a single operational timeline.">
         <div className="grid gap-4">
-          {state.liveClasses.map((liveClass) => (
+          {visibleLiveClasses.map((liveClass) => (
             <div key={liveClass.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 shadow-soft dark:border-white/8 dark:bg-[#13212a]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -705,6 +803,7 @@ export function LiveClassesPanel() {
             </div>
           ))}
         </div>
+        {state.liveClasses.length > 5 ? <SeeMoreButton expanded={showAllLiveClasses} remaining={state.liveClasses.length - 5} onClick={() => setShowAllLiveClasses((current) => !current)} /> : null}
       </Section>
     </div>
   );
@@ -712,11 +811,13 @@ export function LiveClassesPanel() {
 
 export function TeacherSubmissionsPanel() {
   const { state } = useMockLms();
+  const [showAllSubmissions, setShowAllSubmissions] = useState(false);
+  const visibleSubmissions = showAllSubmissions ? state.submissions : state.submissions.slice(0, 5);
 
   return (
     <Section title="Submission queue" subtitle="Essay scoring, review feedback, and pass/fail outcomes are visible to the teacher.">
       <div className="grid gap-4">
-        {state.submissions.map((submission) => {
+        {visibleSubmissions.map((submission) => {
           const assessment = state.assessments.find((item) => item.id === submission.assessmentId);
           return (
             <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
@@ -732,6 +833,81 @@ export function TeacherSubmissionsPanel() {
           );
         })}
       </div>
+      {state.submissions.length > 5 ? <SeeMoreButton expanded={showAllSubmissions} remaining={state.submissions.length - 5} onClick={() => setShowAllSubmissions((current) => !current)} /> : null}
+    </Section>
+  );
+}
+
+export function TeacherAssessmentsPanel() {
+  const { state } = useMockLms();
+  const [showAllAssessments, setShowAllAssessments] = useState(false);
+  const visibleAssessments = showAllAssessments ? state.assessments : state.assessments.slice(0, 5);
+
+  return (
+    <Section title="Assessments and assignments" subtitle="Teacher can manage quiz and assignment inventory, scoring criteria, and publication readiness.">
+      <div className="grid gap-4">
+        {visibleAssessments.map((assessment) => (
+          <div key={assessment.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">{assessment.title}</p>
+                <p className="text-sm text-muted-foreground">{assessment.generatedFrom}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{assessment.type}</Badge>
+                <Badge>{assessment.status}</Badge>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              <StatCard label="Questions" value={String(assessment.questionCount)} className="min-h-[6.4rem] p-4" />
+              <StatCard label="Passing mark" value={assessment.type === "Essay" ? "60%" : "50%"} className="min-h-[6.4rem] p-4" />
+              <StatCard label="Retake" value="Controlled" className="min-h-[6.4rem] p-4" />
+              <StatCard label="Rubric" value={assessment.rubricKeywords.length ? "Defined" : "Basic"} className="min-h-[6.4rem] p-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+      {state.assessments.length > 5 ? <SeeMoreButton expanded={showAllAssessments} remaining={state.assessments.length - 5} onClick={() => setShowAllAssessments((current) => !current)} /> : null}
+    </Section>
+  );
+}
+
+export function EssayEvaluationPanel() {
+  const { state } = useMockLms();
+  const essaySubmissions = state.submissions.filter((submission) => {
+    const assessment = state.assessments.find((item) => item.id === submission.assessmentId);
+    return assessment?.type === "Essay" || assessment?.type === "Short Answer";
+  });
+  const [showAllEssaySubmissions, setShowAllEssaySubmissions] = useState(false);
+  const visibleEssaySubmissions = showAllEssaySubmissions ? essaySubmissions : essaySubmissions.slice(0, 5);
+
+  return (
+    <Section title="Essay evaluation monitor" subtitle="Teacher can review AI feedback, compare rubric alignment, and decide final grade publication.">
+      <div className="grid gap-4">
+        {visibleEssaySubmissions.map((submission) => {
+          const assessment = state.assessments.find((item) => item.id === submission.assessmentId);
+          return (
+            <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">{submission.studentName}</p>
+                  <p className="text-sm text-muted-foreground">{assessment?.title}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge>{submission.score}%</Badge>
+                  <Badge>{submission.passed ? "pass" : "review"}</Badge>
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">{submission.feedback}</p>
+              <div className="mt-3 rounded-[12px] border border-foreground/10 bg-background/70 p-3 text-sm text-muted-foreground dark:border-white/8 dark:bg-white/5">
+                Manual override, final grade publish, and rubric moderation can be tracked from this queue.
+              </div>
+            </div>
+          );
+        })}
+        {!essaySubmissions.length ? <p className="text-sm text-muted-foreground">No essay submissions are waiting right now.</p> : null}
+      </div>
+      {essaySubmissions.length > 5 ? <SeeMoreButton expanded={showAllEssaySubmissions} remaining={essaySubmissions.length - 5} onClick={() => setShowAllEssaySubmissions((current) => !current)} /> : null}
     </Section>
   );
 }
@@ -739,13 +915,14 @@ export function TeacherSubmissionsPanel() {
 export function TeacherStudentPerformancePanel() {
   const { state } = useMockLms();
   const primaryCourse = state.courses[0];
+  const students = state.users.filter((user) => user.role === "student");
+  const [showAllStudents, setShowAllStudents] = useState(false);
+  const visibleStudents = showAllStudents ? students : students.slice(0, 5);
 
   return (
     <Section title="Student performance view" subtitle="See learner progress and support signals across courses.">
       <div className="grid gap-4">
-        {state.users
-          .filter((user) => user.role === "student")
-          .map((student) => (
+        {visibleStudents.map((student) => (
             <div key={student.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 shadow-soft dark:border-white/8 dark:bg-[#13212a]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -786,6 +963,7 @@ export function TeacherStudentPerformancePanel() {
               </div>
             </div>
           ))}
+        {students.length > 5 ? <SeeMoreButton expanded={showAllStudents} remaining={students.length - 5} onClick={() => setShowAllStudents((current) => !current)} /> : null}
       </div>
     </Section>
   );
@@ -808,6 +986,54 @@ export function TeacherSettingsPanel() {
           <option>Loose rubric</option>
         </SelectInput>
       </div>
+    </Section>
+  );
+}
+
+export function TeacherAnnouncementsPanel() {
+  const { state } = useMockLms();
+  const teacherNotices = state.notifications.filter((notification) => notification.audience === "Teacher" || notification.audience === "All");
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+  const visibleTeacherNotices = showAllAnnouncements ? teacherNotices : teacherNotices.slice(0, 5);
+
+  return (
+    <Section title="Announcements" subtitle="Course announcements, assignment reminders, and session notices can be coordinated from one teacher-facing stream.">
+      <div className="grid gap-4">
+        {visibleTeacherNotices.map((notice) => (
+          <div key={notice.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-2">
+                <Badge>{notice.type}</Badge>
+                <Badge>{notice.audience}</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">{new Date(notice.createdAt).toLocaleString()}</p>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">{notice.message}</p>
+          </div>
+        ))}
+      </div>
+      {teacherNotices.length > 5 ? <SeeMoreButton expanded={showAllAnnouncements} remaining={teacherNotices.length - 5} onClick={() => setShowAllAnnouncements((current) => !current)} /> : null}
+    </Section>
+  );
+}
+
+export function TeacherMessagesPanel() {
+  const { state } = useMockLms();
+  const studentSignals = state.submissions;
+  const [showAllMessages, setShowAllMessages] = useState(false);
+  const visibleStudentSignals = showAllMessages ? studentSignals : studentSignals.slice(0, 5);
+
+  return (
+    <Section title="Messages and feedback" subtitle="Teacher can keep student communication, support signals, and feedback delivery visible from one communication lane.">
+      <div className="grid gap-4">
+        {visibleStudentSignals.map((submission) => (
+          <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+            <p className="font-semibold">{submission.studentName}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{submission.feedback}</p>
+          </div>
+        ))}
+      </div>
+      {studentSignals.length > 5 ? <SeeMoreButton expanded={showAllMessages} remaining={studentSignals.length - 5} onClick={() => setShowAllMessages((current) => !current)} /> : null}
     </Section>
   );
 }

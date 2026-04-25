@@ -12,7 +12,7 @@ class DirectoryController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin']);
 
         $users = User::query()
             ->where('tenant_id', $user->tenant_id)
@@ -42,9 +42,9 @@ class DirectoryController extends Controller
 
     public function byRole(Request $request, string $role): JsonResponse
     {
-        abort_unless(in_array($role, ['super_admin', 'admin', 'teacher', 'student', 'hr_manager'], true), 404, 'Role not found.');
+        abort_unless(in_array($role, ['admin', 'teacher', 'student'], true), 404, 'Role not found.');
 
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin']);
 
         $users = User::query()
             ->where('tenant_id', $user->tenant_id)

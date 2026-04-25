@@ -13,7 +13,7 @@ class TenantBrandingController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager'])->loadMissing('tenant');
+        $user = $this->authorizeRoles($request, ['admin'])->loadMissing('tenant');
 
         abort_if($user->tenant === null, 404, 'Tenant not found.');
 
@@ -24,15 +24,13 @@ class TenantBrandingController extends Controller
 
     public function update(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['super_admin', 'admin', 'hr_manager'])->loadMissing('tenant');
+        $user = $this->authorizeRoles($request, ['admin'])->loadMissing('tenant');
 
         abort_if($user->tenant === null, 404, 'Tenant not found.');
 
         $validated = $request->validate([
             'tenantName' => ['nullable', 'string', 'max:255'],
-            'vendorName' => ['nullable', 'string', 'max:255'],
             'subdomain' => ['nullable', 'string', 'max:255'],
-            'vendorSubdomain' => ['nullable', 'string', 'max:255'],
             'logoText' => ['required', 'string', 'max:12'],
             'primaryColor' => ['required', 'string', 'max:20'],
             'accentColor' => ['required', 'string', 'max:20'],
@@ -42,8 +40,8 @@ class TenantBrandingController extends Controller
 
         /** @var Tenant $tenant */
         $tenant = $user->tenant;
-        $tenantName = $validated['tenantName'] ?? $validated['vendorName'] ?? $tenant->name;
-        $subdomain = $validated['subdomain'] ?? $validated['vendorSubdomain'] ?? $tenant->subdomain;
+        $tenantName = $validated['tenantName'] ?? $tenant->name;
+        $subdomain = $validated['subdomain'] ?? $tenant->subdomain;
 
         $tenant->update([
             'name' => $tenantName,

@@ -19,19 +19,14 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'tenant_id' => ['nullable', 'exists:tenants,id'],
-            'vendor_id' => ['nullable', 'exists:tenants,id'],
             'tenant_name' => ['nullable', 'string', 'max:255'],
-            'vendor_name' => ['nullable', 'string', 'max:255'],
             'tenant_subdomain' => ['nullable', 'string', 'max:255'],
-            'vendor_subdomain' => ['nullable', 'string', 'max:255'],
             'tenant_city' => ['nullable', 'string', 'max:255'],
-            'vendor_city' => ['nullable', 'string', 'max:255'],
             'tenant_phone' => ['nullable', 'string', 'max:20'],
-            'vendor_phone' => ['nullable', 'string', 'max:20'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['nullable', 'in:super_admin,admin,teacher,student,hr_manager'],
+            'role' => ['nullable', 'in:admin,teacher,student'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'city' => ['nullable', 'string', 'max:255'],
@@ -73,9 +68,12 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Registration completed successfully.',
             'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
             'user' => LmsSupport::serializeUser($user),
+            'role' => $user->role,
+            'tenant_id' => $user->tenant_id,
             'branding' => LmsSupport::serializeBranding($tenant),
-            'vendor' => LmsSupport::serializeVendorSummary($tenant),
         ], 201);
     }
 
@@ -102,9 +100,12 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
             'user' => LmsSupport::serializeUser($user),
+            'role' => $user->role,
+            'tenant_id' => $user->tenant_id,
             'branding' => $user->tenant !== null ? LmsSupport::serializeBranding($user->tenant) : null,
-            'vendor' => $user->tenant !== null ? LmsSupport::serializeVendorSummary($user->tenant) : null,
             'bootstrap' => $user->tenant_id !== null ? LmsSupport::bootstrapPayload($user) : null,
         ]);
     }
@@ -118,7 +119,6 @@ class AuthController extends Controller
             'data' => [
                 'user' => LmsSupport::serializeUser($user),
                 'branding' => $user->tenant !== null ? LmsSupport::serializeBranding($user->tenant) : null,
-                'vendor' => $user->tenant !== null ? LmsSupport::serializeVendorSummary($user->tenant) : null,
             ],
         ]);
     }
@@ -134,11 +134,11 @@ class AuthController extends Controller
 
     private function resolveTenant(array $validated): Tenant
     {
-        if (isset($validated['tenant_id']) || isset($validated['vendor_id'])) {
-            return Tenant::query()->findOrFail($validated['tenant_id'] ?? $validated['vendor_id']);
+        if (isset($validated['tenant_id'])) {
+            return Tenant::query()->findOrFail($validated['tenant_id']);
         }
 
-        if (! isset($validated['tenant_name']) && ! isset($validated['vendor_name'])) {
+        if (! isset($validated['tenant_name'])) {
             return Tenant::query()->first()
                 ?? Tenant::query()->create([
                     'name' => 'Betopia Academy',
@@ -157,10 +157,10 @@ class AuthController extends Controller
                 ]);
         }
 
-        $tenantName = $validated['tenant_name'] ?? $validated['vendor_name'];
-        $tenantCity = $validated['tenant_city'] ?? $validated['vendor_city'] ?? 'Dhaka';
-        $tenantPhone = $validated['tenant_phone'] ?? $validated['vendor_phone'] ?? '01710000002';
-        $subdomain = $validated['tenant_subdomain'] ?? $validated['vendor_subdomain'] ?? Str::slug((string) $tenantName);
+        $tenantName = $validated['tenant_name'];
+        $tenantCity = $validated['tenant_city'] ?? 'Dhaka';
+        $tenantPhone = $validated['tenant_phone'] ?? '01710000002';
+        $subdomain = $validated['tenant_subdomain'] ?? Str::slug((string) $tenantName);
 
         return Tenant::query()->firstOrCreate(
             ['subdomain' => $subdomain],
@@ -183,12 +183,7 @@ class AuthController extends Controller
 
     private function assignRole(User $user, string $requestedRole): void
     {
-        $roleName = match ($requestedRole) {
-            'admin' => 'tenant_admin',
-            default => $requestedRole,
-        };
-
-        $role = Role::query()->where('name', $roleName)->first();
+        $role = Role::query()->where('name', $requestedRole)->first();
 
         if ($role !== null) {
             $user->roles()->syncWithoutDetaching([$role->id]);

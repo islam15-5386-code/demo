@@ -59,10 +59,17 @@ const contextualGroups: Array<{
     label: "Admin lanes",
     links: [
       { href: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-      { href: "/admin/tenants", label: "Tenants", icon: <Users className="h-4 w-4" /> },
+      { href: "/admin/institute-settings", label: "Institute", icon: <Users className="h-4 w-4" /> },
+      { href: "/admin/users", label: "Users", icon: <Users className="h-4 w-4" /> },
       { href: "/admin/courses", label: "Courses", icon: <BookOpenText className="h-4 w-4" /> },
-      { href: "/admin/reports", label: "Reports", icon: <ChartNoAxesCombined className="h-4 w-4" /> },
-      { href: "/admin/reports/compliance", label: "Trust", icon: <ShieldCheck className="h-4 w-4" /> }
+      { href: "/admin/enrollments", label: "Enrollments", icon: <GraduationCap className="h-4 w-4" /> },
+      { href: "/admin/assessments", label: "Assessments", icon: <Sparkles className="h-4 w-4" /> },
+      { href: "/admin/ai-tools", label: "AI Tools", icon: <Sparkles className="h-4 w-4" /> },
+      { href: "/admin/live-classes", label: "Live", icon: <PlayCircle className="h-4 w-4" /> },
+      { href: "/admin/certificates", label: "Certificates", icon: <ShieldCheck className="h-4 w-4" /> },
+      { href: "/admin/reports/compliance", label: "Reports", icon: <ChartNoAxesCombined className="h-4 w-4" /> },
+      { href: "/admin/billing", label: "Billing", icon: <CreditCard className="h-4 w-4" /> },
+      { href: "/admin/audit-logs", label: "Audit", icon: <ShieldCheck className="h-4 w-4" /> }
     ]
   },
   {
@@ -71,9 +78,13 @@ const contextualGroups: Array<{
     links: [
       { href: "/teacher/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
       { href: "/teacher/courses", label: "Courses", icon: <BookOpenText className="h-4 w-4" /> },
+      { href: "/teacher/content-uploads", label: "Uploads", icon: <Compass className="h-4 w-4" /> },
       { href: "/teacher/assessments", label: "Assess", icon: <Sparkles className="h-4 w-4" /> },
+      { href: "/teacher/assignments", label: "Assignments", icon: <BookOpenText className="h-4 w-4" /> },
+      { href: "/teacher/submissions", label: "Submissions", icon: <MessageSquareQuote className="h-4 w-4" /> },
       { href: "/teacher/live-classes", label: "Live", icon: <PlayCircle className="h-4 w-4" /> },
-      { href: "/teacher/students", label: "Students", icon: <Users className="h-4 w-4" /> }
+      { href: "/teacher/students", label: "Students", icon: <Users className="h-4 w-4" /> },
+      { href: "/teacher/announcements", label: "Announce", icon: <MessageSquareQuote className="h-4 w-4" /> }
     ]
   },
   {

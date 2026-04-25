@@ -39,7 +39,7 @@ class EnrollmentController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
 
         $validated = $request->validate([
             'course_id' => ['required', 'exists:courses,id'],
@@ -89,7 +89,7 @@ class EnrollmentController extends Controller
 
     public function update(Request $request, Enrollment $enrollment): JsonResponse
     {
-        $user = $this->authorizeRoles($request, ['admin', 'teacher', 'hr_manager']);
+        $user = $this->authorizeRoles($request, ['admin', 'teacher']);
         abort_if($enrollment->tenant_id !== $user->tenant_id, 404, 'Enrollment not found.');
 
         $validated = $request->validate([

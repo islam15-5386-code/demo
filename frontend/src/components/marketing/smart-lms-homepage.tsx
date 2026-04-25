@@ -625,9 +625,9 @@ export default function SmartLMSHomePage() {
 
       {/* ── Better learning ops ── */}
       <section style={{ padding: "80px 5%", background: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 60, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 32, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
           {/* Left visual card */}
-          <div style={{ flex: "1 1 300px" }}>
+          <div style={{ flex: "1 1 360px", maxWidth: 460 }}>
             <div
               style={{
                 background: "linear-gradient(135deg, #1A1A2E, #2D2D50)",
@@ -651,7 +651,7 @@ export default function SmartLMSHomePage() {
           </div>
 
           {/* Right content */}
-          <div style={{ flex: "1 1 400px" }}>
+          <div style={{ flex: "1 1 520px" }}>
             <p style={{ fontSize: 12, color: "#E8A020", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Welcome to Smart LMS</p>
             <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 800, color: "#1A1A2E", lineHeight: 1.2, marginBottom: 16 }}>
               Better learning operations for institutes and teams.

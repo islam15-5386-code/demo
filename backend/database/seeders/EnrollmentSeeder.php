@@ -95,6 +95,70 @@ class EnrollmentSeeder extends Seeder
                             ->count(),
                     ]);
                 });
+
+            $demoStudent = User::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('email', 'student@example.com')
+                ->first();
+
+            if ($demoStudent === null) {
+                return;
+            }
+
+            Course::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('status', 'published')
+                ->with('modules.lessons')
+                ->orderBy('id')
+                ->take(2)
+                ->get()
+                ->values()
+                ->each(function (Course $course, int $index) use ($tenant, $demoStudent): void {
+                    $status = $index === 0 ? 'completed' : 'active';
+                    $progress = $index === 0 ? 100 : 72;
+                    $enrolledAt = Carbon::now()->subDays(20 + $index * 5);
+                    $completedAt = $status === 'completed' ? (clone $enrolledAt)->addDays(12) : null;
+                    $courseLessons = $course->modules->flatMap->lessons->values();
+
+                    Enrollment::query()->updateOrCreate(
+                        [
+                            'course_id' => $course->id,
+                            'student_id' => $demoStudent->id,
+                        ],
+                        [
+                            'tenant_id' => $tenant->id,
+                            'status' => $status,
+                            'progress_percentage' => $progress,
+                            'enrolled_at' => $enrolledAt,
+                            'completed_at' => $completedAt,
+                        ]
+                    );
+
+                    $this->syncLessonCompletion($courseLessons, $demoStudent, $progress, $enrolledAt);
+
+                    ComplianceRecord::query()->updateOrCreate(
+                        [
+                            'tenant_id' => $tenant->id,
+                            'user_id' => $demoStudent->id,
+                            'course_id' => $course->id,
+                        ],
+                        [
+                            'employee_name' => $demoStudent->name,
+                            'department' => $demoStudent->department ?? 'Operations',
+                            'role_title' => $demoStudent->department ? $demoStudent->department . ' Executive' : 'Learner',
+                            'course_title' => $course->title,
+                            'completion_percent' => $progress,
+                            'certified' => $status === 'completed',
+                        ]
+                    );
+
+                    $course->update([
+                        'enrollment_count' => Enrollment::query()
+                            ->where('course_id', $course->id)
+                            ->whereIn('status', ['active', 'completed', 'pending'])
+                            ->count(),
+                    ]);
+                });
         });
     }
 

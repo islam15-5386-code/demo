@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, CreditCard, Mail, ReceiptText, SendHorizontal, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   backendReadyEndpoints,
@@ -18,25 +18,120 @@ import {
   MetricGrid,
   PrimaryButton,
   SecondaryButton,
+  SeeMoreButton,
   Section,
   SelectInput,
+  StatCard,
   TextInput,
   downloadTextFile,
   emailForName,
   openMailDraft
 } from "@/components/shared/lms-core";
 
+const bangladeshiInstitutePresets = [
+  {
+    id: "diu",
+    label: "Daffodil International University",
+    previewCopy: "DIU learner portal, branded access, and support touchpoints are ready for tenant provisioning in the demo workspace.",
+    branding: {
+      tenantName: "Daffodil International University",
+      vendorName: "Daffodil International University",
+      city: "Dhaka",
+      logoText: "DIU",
+      subdomain: "daffodil",
+      vendorSubdomain: "daffodil",
+      customDomain: "learn.daffodil.edu.bd",
+      supportEmail: "support@daffodil.edu.bd",
+      primaryColor: "#6d28d9",
+      accentColor: "#16a34a"
+    }
+  },
+  {
+    id: "bracu",
+    label: "BRAC University",
+    previewCopy: "BRAC University white-label learner access and branded support settings stay aligned with Smart LMS tenant provisioning.",
+    branding: {
+      tenantName: "BRAC University",
+      vendorName: "BRAC University",
+      city: "Dhaka",
+      logoText: "BRACU",
+      subdomain: "bracu",
+      vendorSubdomain: "bracu",
+      customDomain: "learn.bracu.ac.bd",
+      supportEmail: "support@bracu.ac.bd",
+      primaryColor: "#1d4ed8",
+      accentColor: "#dc2626"
+    }
+  },
+  {
+    id: "tti",
+    label: "Tepantor Training Institute",
+    previewCopy: "Tepantor Training Institute branding, domain mapping, and support identity are prefilled for clean tenant setup demos.",
+    branding: {
+      tenantName: "Tepantor Training Institute",
+      vendorName: "Tepantor Training Institute",
+      city: "Chattogram",
+      logoText: "TTI",
+      subdomain: "tepantor",
+      vendorSubdomain: "tepantor",
+      customDomain: "learn.tepantor.com.bd",
+      supportEmail: "support@tepantor.com.bd",
+      primaryColor: "#0f766e",
+      accentColor: "#f97316"
+    }
+  }
+] as const;
+
+type BangladeshiInstitutePresetId = (typeof bangladeshiInstitutePresets)[number]["id"];
+
+function resolveInstitutePresetId(subdomain: string) {
+  return bangladeshiInstitutePresets.find((preset) => preset.branding.subdomain === subdomain)?.id ?? bangladeshiInstitutePresets[0].id;
+}
+
 export function BrandingPanel() {
   const { state, updateBranding } = useMockLms();
   const [form, setForm] = useState(state.branding);
+  const [selectedInstitute, setSelectedInstitute] = useState(resolveInstitutePresetId(state.branding.subdomain));
+
+  useEffect(() => {
+    setForm(state.branding);
+    setSelectedInstitute(resolveInstitutePresetId(state.branding.subdomain));
+  }, [state.branding]);
+
+  const activePreset = bangladeshiInstitutePresets.find((preset) => preset.id === selectedInstitute) ?? bangladeshiInstitutePresets[0];
+
+  const applyInstitutePreset = async (presetId: BangladeshiInstitutePresetId) => {
+    const preset = bangladeshiInstitutePresets.find((item) => item.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    const nextBranding = {
+      ...state.branding,
+      ...preset.branding
+    };
+
+    setSelectedInstitute(presetId);
+    setForm(nextBranding);
+    await updateBranding(nextBranding);
+  };
 
   return (
     <Section title="White-label branding" subtitle="Update the tenant identity, domain, and color system exactly like the SRS provisioning flow expects.">
       <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput value={form.tenantName} onChange={(event) => setForm({ ...form, tenantName: event.target.value })} placeholder="Tenant name" />
-          <TextInput value={form.logoText} onChange={(event) => setForm({ ...form, logoText: event.target.value.slice(0, 3) })} placeholder="Logo initials" />
-          <TextInput value={form.subdomain} onChange={(event) => setForm({ ...form, subdomain: event.target.value })} placeholder="Subdomain" />
+          <div className="sm:col-span-2">
+            <SelectInput value={selectedInstitute} onChange={(event) => void applyInstitutePreset(event.target.value as BangladeshiInstitutePresetId)}>
+              {bangladeshiInstitutePresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.label}
+                </option>
+              ))}
+            </SelectInput>
+          </div>
+          <TextInput value={form.tenantName} onChange={(event) => setForm({ ...form, tenantName: event.target.value, vendorName: event.target.value })} placeholder="Tenant name" />
+          <TextInput value={form.logoText} onChange={(event) => setForm({ ...form, logoText: event.target.value.slice(0, 6) })} placeholder="Short name" />
+          <TextInput value={form.subdomain} onChange={(event) => setForm({ ...form, subdomain: event.target.value, vendorSubdomain: event.target.value })} placeholder="Subdomain" />
           <TextInput value={form.customDomain} onChange={(event) => setForm({ ...form, customDomain: event.target.value })} placeholder="Custom domain" />
           <TextInput value={form.supportEmail} onChange={(event) => setForm({ ...form, supportEmail: event.target.value })} placeholder="Support email" />
           <div className="grid grid-cols-2 gap-3">
@@ -44,7 +139,7 @@ export function BrandingPanel() {
             <TextInput type="color" value={form.accentColor} onChange={(event) => setForm({ ...form, accentColor: event.target.value })} />
           </div>
           <div className="sm:col-span-2">
-            <PrimaryButton onClick={() => updateBranding(form)}>Save branding profile</PrimaryButton>
+            <PrimaryButton onClick={() => updateBranding({ ...form, vendorName: form.tenantName, vendorSubdomain: form.subdomain })}>Save branding profile</PrimaryButton>
           </div>
         </div>
 
@@ -65,7 +160,7 @@ export function BrandingPanel() {
             </div>
           </div>
           <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/8 p-4">
-            <p className="text-sm text-white/85">White-labeled login page, institute colors, and branded support touchpoints are now configurable in the demo state.</p>
+            <p className="text-sm text-white/85">{activePreset.previewCopy}</p>
           </div>
         </div>
       </div>
@@ -76,7 +171,9 @@ export function BrandingPanel() {
 export function CompliancePanel() {
   const { state, currentUser, sendComplianceReminders } = useMockLms();
   const incompleteLearners = state.complianceRecords.filter((record) => !record.certified || record.completionPercent < 100);
+  const [showAllRecords, setShowAllRecords] = useState(false);
   const [selectedRecipientId, setSelectedRecipientId] = useState(incompleteLearners[0]?.id ?? state.complianceRecords[0]?.id ?? "");
+  const visibleComplianceRecords = showAllRecords ? state.complianceRecords : state.complianceRecords.slice(0, 5);
   const selectedRecipient =
     state.complianceRecords.find((record) => record.id === selectedRecipientId) ??
     incompleteLearners[0] ??
@@ -112,7 +209,7 @@ export function CompliancePanel() {
               </tr>
             </thead>
             <tbody>
-              {state.complianceRecords.map((record) => (
+              {visibleComplianceRecords.map((record) => (
                 <tr key={record.id} className="border-b border-foreground/8">
                   <td className="px-4 py-3">{record.employeeName}</td>
                   <td className="px-4 py-3">{record.department}</td>
@@ -124,6 +221,9 @@ export function CompliancePanel() {
             </tbody>
           </table>
         </div>
+        {state.complianceRecords.length > 5 ? (
+          <SeeMoreButton expanded={showAllRecords} remaining={state.complianceRecords.length - 5} onClick={() => setShowAllRecords((current) => !current)} />
+        ) : null}
       </Section>
 
       <Section title="Report actions" subtitle="Export data, trigger reminders, and support HR or regulatory workflows from the frontend.">
@@ -217,6 +317,8 @@ export function CertificatesPanel() {
   const { state, issueCertificate, revokeCertificate } = useMockLms();
   const [studentName, setStudentName] = useState("Rafi Khan");
   const [courseId, setCourseId] = useState(state.courses[0]?.id ?? "");
+  const [showAllCertificates, setShowAllCertificates] = useState(false);
+  const visibleCertificates = showAllCertificates ? state.certificates : state.certificates.slice(0, 5);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
@@ -236,7 +338,7 @@ export function CertificatesPanel() {
 
       <Section title="Certificate register" subtitle="Download, verify, or revoke generated certificates from a central register.">
         <div className="grid gap-4">
-          {state.certificates.map((certificate) => (
+          {visibleCertificates.map((certificate) => (
             <div key={certificate.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -261,6 +363,9 @@ export function CertificatesPanel() {
             </div>
           ))}
         </div>
+        {state.certificates.length > 5 ? (
+          <SeeMoreButton expanded={showAllCertificates} remaining={state.certificates.length - 5} onClick={() => setShowAllCertificates((current) => !current)} />
+        ) : null}
       </Section>
     </div>
   );
@@ -475,11 +580,13 @@ export function PlanManagementPanel() {
 
 export function NotificationsPanel() {
   const { state } = useMockLms();
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const visibleNotifications = showAllNotifications ? state.notifications : state.notifications.slice(0, 5);
 
   return (
     <Section title="Notification center" subtitle="Transactional, compliance, billing, and live-class notices are all visible in one stream.">
       <div className="grid gap-3">
-        {state.notifications.map((notification) => (
+        {visibleNotifications.map((notification) => (
           <div key={notification.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -492,12 +599,17 @@ export function NotificationsPanel() {
           </div>
         ))}
       </div>
+      {state.notifications.length > 5 ? (
+        <SeeMoreButton expanded={showAllNotifications} remaining={state.notifications.length - 5} onClick={() => setShowAllNotifications((current) => !current)} />
+      ) : null}
     </Section>
   );
 }
 
 export function AuditPanel() {
   const { state } = useMockLms();
+  const [showAllAuditEvents, setShowAllAuditEvents] = useState(false);
+  const visibleAuditEvents = showAllAuditEvents ? state.auditEvents : state.auditEvents.slice(0, 5);
 
   return (
     <Section title="Audit trail" subtitle="Administrative actions, target objects, timestamp, and IP metadata remain visible for operational trust.">
@@ -513,7 +625,7 @@ export function AuditPanel() {
             </tr>
           </thead>
           <tbody>
-            {state.auditEvents.map((event) => (
+            {visibleAuditEvents.map((event) => (
               <tr key={event.id} className="border-b border-foreground/8">
                 <td className="px-4 py-3">{event.actor}</td>
                 <td className="px-4 py-3">{event.action}</td>
@@ -525,6 +637,214 @@ export function AuditPanel() {
           </tbody>
         </table>
       </div>
+      {state.auditEvents.length > 5 ? (
+        <SeeMoreButton expanded={showAllAuditEvents} remaining={state.auditEvents.length - 5} onClick={() => setShowAllAuditEvents((current) => !current)} />
+      ) : null}
+    </Section>
+  );
+}
+
+export function InstituteSettingsPanel() {
+  const { state } = useMockLms();
+  const activePreset = bangladeshiInstitutePresets.find((preset) => preset.branding.subdomain === state.branding.subdomain);
+
+  return (
+    <Section title="Institute settings" subtitle="Institute profile, tenant identity, white-label values, and default operating context for the LMS.">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-[1.4rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
+          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Institute</p>
+          <p className="mt-3 font-serif text-2xl">{state.branding.tenantName}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{state.branding.city ?? "Dhaka"}</p>
+        </div>
+        <div className="rounded-[1.4rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
+          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Subdomain</p>
+          <p className="mt-3 font-serif text-2xl">{state.branding.subdomain}</p>
+          <p className="mt-2 text-sm text-muted-foreground">White-label login is tied to tenant branding.</p>
+        </div>
+        <div className="rounded-[1.4rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
+          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Custom domain</p>
+          <p className="mt-3 font-serif text-2xl">{state.branding.customDomain || "Not set"}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{state.branding.supportEmail}</p>
+        </div>
+        <div className="rounded-[1.4rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
+          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Default role mix</p>
+          <p className="mt-3 font-serif text-2xl">
+            {state.users.filter((user) => user.role === "admin").length} / {state.users.filter((user) => user.role === "teacher").length} / {state.users.filter((user) => user.role === "student").length}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">Admins, teachers, students</p>
+        </div>
+      </div>
+      <div className="mt-5 rounded-[1.5rem] border border-foreground/10 bg-background/75 p-4 text-sm text-muted-foreground dark:border-white/8 dark:bg-white/5">
+        {activePreset?.previewCopy ?? "Institute profile, logo text, colors, support email, subdomain, and custom domain are editable from the branding workflow."}
+      </div>
+    </Section>
+  );
+}
+
+export function UserDirectoryPanel({ roleFilter }: { roleFilter?: "teacher" | "student" | "admin" }) {
+  const { state } = useMockLms();
+  const users = roleFilter ? state.users.filter((user) => user.role === roleFilter) : state.users;
+  const title = roleFilter ? `${roleFilter[0].toUpperCase()}${roleFilter.slice(1)} directory` : "User directory";
+  const initialVisibleCount = roleFilter ? 5 : 3;
+  const shouldCollapse = users.length > initialVisibleCount;
+  const [showAll, setShowAll] = useState(false);
+  const visibleUsers = shouldCollapse && !showAll ? users.slice(0, initialVisibleCount) : users;
+
+  return (
+    <Section title={title} subtitle="Admin can review users, role assignments, department alignment, and account coverage from one place.">
+      <div className="grid gap-4">
+        {visibleUsers.map((user) => (
+          <div key={user.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">{user.name}</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{user.role}</Badge>
+                {user.department ? <Badge>{user.department}</Badge> : null}
+                <Badge>active</Badge>
+              </div>
+            </div>
+          </div>
+        ))}
+        {shouldCollapse ? <SeeMoreButton expanded={showAll} remaining={users.length - initialVisibleCount} onClick={() => setShowAll((current) => !current)} /> : null}
+      </div>
+    </Section>
+  );
+}
+
+export function EnrollmentManagementPanel() {
+  const { state } = useMockLms();
+  const [showAllEnrollments, setShowAllEnrollments] = useState(false);
+  const visibleEnrollments = showAllEnrollments ? state.enrollments : state.enrollments.slice(0, 5);
+
+  return (
+    <Section title="Enrollment management" subtitle="Monitor course-wise enrollment, student progress, and enrollment status changes from the admin workspace.">
+      <div className="grid gap-4 2xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <StatCard label="Total enrollments" value={String(state.enrollments.length)} icon={<Users className="h-5 w-5" />} className="min-h-[9rem]" />
+          <StatCard label="Active" value={String(state.enrollments.filter((enrollment) => enrollment.status === "active").length)} icon={<Users className="h-5 w-5" />} className="min-h-[9rem]" />
+          <StatCard label="Completed" value={String(state.enrollments.filter((enrollment) => enrollment.status === "completed").length)} icon={<Users className="h-5 w-5" />} className="min-h-[9rem]" />
+          <StatCard label="Pending" value={String(state.enrollments.filter((enrollment) => enrollment.status === "pending").length)} icon={<Users className="h-5 w-5" />} className="min-h-[9rem]" />
+        </div>
+        <div className="overflow-x-auto rounded-[1.4rem] border border-foreground/10 bg-white dark:border-white/8 dark:bg-[#13212a]">
+          <table className="min-w-full table-fixed text-left text-sm">
+            <thead className="border-b border-foreground/10 bg-background/70 text-muted-foreground">
+              <tr>
+                <th className="w-[26%] px-4 py-3 font-medium">Student</th>
+                <th className="w-[34%] px-4 py-3 font-medium">Course</th>
+                <th className="w-[20%] px-4 py-3 font-medium">Status</th>
+                <th className="w-[20%] px-4 py-3 font-medium">Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleEnrollments.map((enrollment) => (
+                <tr key={enrollment.id} className="border-b border-foreground/8">
+                  <td className="px-4 py-3 align-top text-pretty-wrap break-words">{enrollment.studentName ?? enrollment.studentId}</td>
+                  <td className="px-4 py-3 align-top text-pretty-wrap break-words">{enrollment.courseTitle ?? enrollment.courseId}</td>
+                  <td className="px-4 py-3 align-top text-pretty-wrap break-words">{enrollment.status}</td>
+                  <td className="px-4 py-3 align-top whitespace-nowrap">{enrollment.progressPercentage}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {state.enrollments.length > 5 ? (
+        <SeeMoreButton expanded={showAllEnrollments} remaining={state.enrollments.length - 5} onClick={() => setShowAllEnrollments((current) => !current)} />
+      ) : null}
+    </Section>
+  );
+}
+
+export function AdminAssessmentsPanel() {
+  const { state } = useMockLms();
+  const [showAllAssessments, setShowAllAssessments] = useState(false);
+  const visibleAssessments = showAllAssessments ? state.assessments : state.assessments.slice(0, 5);
+
+  return (
+    <Section title="Assessment control" subtitle="Admin can inspect assessment coverage, publishing state, and learner submission outcomes.">
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard label="Assessments" value={String(state.assessments.length)} className="min-h-[7rem] p-4" />
+        <StatCard label="Published" value={String(state.assessments.filter((assessment) => assessment.status === "published").length)} className="min-h-[7rem] p-4" />
+        <StatCard label="Submissions" value={String(state.submissions.length)} className="min-h-[7rem] p-4" />
+      </div>
+      <div className="mt-5 grid gap-4">
+        {visibleAssessments.map((assessment) => (
+          <div key={assessment.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">{assessment.title}</p>
+                <p className="text-sm text-muted-foreground">{assessment.generatedFrom}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{assessment.type}</Badge>
+                <Badge>{assessment.status}</Badge>
+                <Badge>{assessment.questionCount} questions</Badge>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {state.assessments.length > 5 ? (
+        <SeeMoreButton expanded={showAllAssessments} remaining={state.assessments.length - 5} onClick={() => setShowAllAssessments((current) => !current)} />
+      ) : null}
+    </Section>
+  );
+}
+
+export function AdminAiToolsPanel() {
+  const { state } = useMockLms();
+  const aiGenerated = state.assessments.filter((assessment) => assessment.generatedFrom.toLowerCase().includes("ai") || assessment.generatedFrom.toLowerCase().includes("teacher note") || assessment.generatedFrom.toLowerCase().includes("fallback")).length;
+
+  return (
+    <Section title="AI tools monitor" subtitle="Admin can monitor AI quiz generation, essay evaluation coverage, fallback bank continuity, and plan-linked enablement.">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StatCard label="AI-generated drafts" value={String(aiGenerated)} className="min-h-[7rem] p-4" />
+        <StatCard label="Essay workflows" value={String(state.assessments.filter((assessment) => assessment.type === "Essay" || assessment.type === "Short Answer").length)} className="min-h-[7rem] p-4" />
+        <StatCard label="Fallback banks" value={String(backendReadyEndpoints.fallbackQuestionBank ? 1 : 0)} className="min-h-[7rem] p-4" />
+        <StatCard label="Plan access" value={state.billing.plan} note="Current subscription tier" className="min-h-[7rem] p-4" />
+      </div>
+      <div className="mt-5 rounded-[1.5rem] border border-foreground/10 bg-background/75 p-4 text-sm leading-6 text-muted-foreground dark:border-white/8 dark:bg-white/5">
+        Admin can review question-generation activity, essay evaluation load, fallback continuity, and whether advanced AI tooling aligns with the current subscription tier.
+      </div>
+    </Section>
+  );
+}
+
+export function LiveClassMonitorPanel() {
+  const { state } = useMockLms();
+  const [showAllLiveClasses, setShowAllLiveClasses] = useState(false);
+  const visibleLiveClasses = showAllLiveClasses ? state.liveClasses : state.liveClasses.slice(0, 5);
+
+  return (
+    <Section title="Live class monitor" subtitle="Admin can review scheduled sessions, recording status, participant limits, and reminder coverage.">
+      <div className="grid gap-4">
+        {visibleLiveClasses.map((liveClass) => (
+          <div key={liveClass.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-serif text-2xl">{liveClass.title}</p>
+                <p className="text-sm text-muted-foreground">{new Date(liveClass.startAt).toLocaleString()} · {liveClass.durationMinutes} min</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{liveClass.status}</Badge>
+                <Badge>{liveClass.participantLimit} seats</Badge>
+                <Badge>{liveClass.provider}</Badge>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="rounded-[1.2rem] border border-foreground/10 bg-background/70 p-3 dark:border-white/8 dark:bg-white/5">24h reminder: {liveClass.reminder24h ? "On" : "Off"}</div>
+              <div className="rounded-[1.2rem] border border-foreground/10 bg-background/70 p-3 dark:border-white/8 dark:bg-white/5">1h reminder: {liveClass.reminder1h ? "On" : "Off"}</div>
+              <div className="rounded-[1.2rem] border border-foreground/10 bg-background/70 p-3 dark:border-white/8 dark:bg-white/5">Recording: {liveClass.recordingUrl ? "Available" : "Pending"}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {state.liveClasses.length > 5 ? (
+        <SeeMoreButton expanded={showAllLiveClasses} remaining={state.liveClasses.length - 5} onClick={() => setShowAllLiveClasses((current) => !current)} />
+      ) : null}
     </Section>
   );
 }

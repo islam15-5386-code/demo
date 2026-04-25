@@ -368,8 +368,7 @@ class BangladeshLmsDataset
     public static function rolePermissions(): array
     {
         return [
-            'super_admin' => array_keys(self::permissions()),
-            'tenant_admin' => [
+            'admin' => [
                 'manage_users',
                 'manage_courses',
                 'publish_courses',
@@ -385,16 +384,10 @@ class BangladeshLmsDataset
                 'publish_courses',
                 'manage_assessments',
                 'manage_live_classes',
-                'track_attendance',
                 'receive_notifications',
             ],
             'student' => [
                 'submit_assessments',
-                'receive_notifications',
-            ],
-            'hr_manager' => [
-                'view_reports',
-                'manage_certificates',
                 'receive_notifications',
             ],
         ];
