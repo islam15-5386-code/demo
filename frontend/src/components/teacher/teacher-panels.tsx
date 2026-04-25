@@ -380,16 +380,16 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
   return (
     <Tabs.Root value={activeTab} onValueChange={(value) => setActiveTab(value as "generate" | "review")} className="grid gap-6">
       <Tabs.List className="flex flex-wrap gap-2 rounded-full border border-foreground/10 bg-white/70 p-2 shadow-soft dark:border-white/10 dark:bg-white/8">
-        <Tabs.Trigger value="generate" className="min-w-[7.25rem] rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-cyan-950 data-[state=active]:text-white dark:text-cyan-100/80">
+        <Tabs.Trigger value="generate" className="min-w-[7.25rem] rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-[#1A1A2E] data-[state=active]:text-white dark:text-white/80">
           AI Generation
         </Tabs.Trigger>
-        <Tabs.Trigger value="review" className="min-w-[7.25rem] rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-cyan-950 data-[state=active]:text-white dark:text-cyan-100/80">
+        <Tabs.Trigger value="review" className="min-w-[7.25rem] rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-[#1A1A2E] data-[state=active]:text-white dark:text-white/80">
           Review Queue
         </Tabs.Trigger>
       </Tabs.List>
 
       {backendMessage ? (
-        <div className={`rounded-[18px] border px-4 py-3 text-sm shadow-soft ${backendStatus === "error" ? "border-orange-300/50 bg-orange-50 text-orange-900 dark:border-orange-400/20 dark:bg-orange-500/10 dark:text-orange-100" : "border-cyan-900/10 bg-cyan-50 text-cyan-950 dark:border-cyan-400/15 dark:bg-cyan-500/10 dark:text-cyan-100"}`}>
+        <div className={`rounded-[18px] border px-4 py-3 text-sm shadow-soft ${backendStatus === "error" ? "border-orange-300/50 bg-orange-50 text-orange-900 dark:border-orange-400/20 dark:bg-orange-500/10 dark:text-orange-100" : "border-[#E8A020]/20 bg-[#E8A020]/10 text-[#1A1A2E] dark:border-[#E8A020]/25 dark:bg-[#E8A020]/10 dark:text-[#F5C766]"}`}>
           {backendMessage}
         </div>
       ) : null}
@@ -422,7 +422,7 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
                     Upload PDF, DOCX, or text notes and let the backend extract readable content before question generation.
                   </p>
                 </div>
-                <label htmlFor="note-upload-input" className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-cyan-950 px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5">
+                <label htmlFor="note-upload-input" className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#1A1A2E] px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-[#E8A020]">
                   <HardDriveUpload className="h-5 w-5" />
                   Upload notes
                 </label>
@@ -430,10 +430,10 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
 
               <input id="note-upload-input" type="file" accept=".txt,.md,.json,.csv,.pdf,.doc,.docx" className="hidden" onChange={handleNoteUpload} />
 
-              <div className="mt-5 rounded-[1.4rem] border border-dashed border-cyan-900/20 bg-background/80 p-4 dark:border-cyan-300/15 dark:bg-white/5">
+              <div className="mt-5 rounded-[1.4rem] border border-dashed border-[#E8A020]/25 bg-background/80 p-4 dark:border-[#E8A020]/25 dark:bg-white/5">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge>Backend upload endpoint</Badge>
-                  <code className="text-sm text-cyan-900 dark:text-cyan-200">{backendReadyEndpoints.noteUpload}</code>
+                  <code className="text-sm text-[#1A1A2E] dark:text-[#F5C766]">{backendReadyEndpoints.noteUpload}</code>
                   {uploadMethod ? <Badge>{uploadMethod}</Badge> : null}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{uploadStatus}</p>
@@ -536,11 +536,11 @@ export function AssessmentLab({ reviewMode = false }: { reviewMode?: boolean }) 
             <Badge>{backendReadyEndpoints.aiAssessmentGenerate}</Badge>
           </div>
           {generationStatus ? (
-            <div className="mt-5 rounded-[20px] border border-cyan-900/12 bg-cyan-950 px-5 py-4 text-white shadow-soft dark:border-cyan-300/12">
+            <div className="mt-5 rounded-[20px] border border-[#E8A020]/20 bg-[#1A1A2E] px-5 py-4 text-white shadow-soft dark:border-[#E8A020]/20">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-100/75">Draft status</p>
-                  <p className="mt-2 text-sm leading-6 text-cyan-50">{generationStatus}</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#F5C766]">Draft status</p>
+                  <p className="mt-2 text-sm leading-6 text-white/85">{generationStatus}</p>
                 </div>
                 <PrimaryButton className="min-h-[42px]" onClick={() => setActiveTab("review")}>
                   Open review queue
@@ -697,7 +697,7 @@ export function LiveClassesPanel() {
                 ) : null}
                 <SecondaryButton onClick={() => setLiveClassStatus(liveClass.id, "recorded")}>Mark recorded</SecondaryButton>
                 {liveClass.recordingUrl ? (
-                  <SecondaryButton onClick={() => window.open(liveClass.recordingUrl, "_blank", "noopener,noreferrer")}>
+                  <SecondaryButton onClick={() => window.open(liveClass.recordingUrl ?? undefined, "_blank", "noopener,noreferrer")}>
                     Open recording
                   </SecondaryButton>
                 ) : null}
@@ -719,7 +719,7 @@ export function TeacherSubmissionsPanel() {
         {state.submissions.map((submission) => {
           const assessment = state.assessments.find((item) => item.id === submission.assessmentId);
           return (
-            <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4">
+            <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold">{submission.studentName}</p>

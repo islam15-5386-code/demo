@@ -90,17 +90,17 @@ export function CompliancePanel() {
         `This is a reminder to complete ${selectedRecipient.courseTitle}.`,
         `Current completion: ${selectedRecipient.completionPercent}%.`,
         "",
-        "Please log in to Betopia LMS and finish the remaining steps.",
+        "Please log in to Smart LMS and finish the remaining steps.",
         "",
         "Regards,",
-        "Betopia Academy Compliance Team"
+        "Smart LMS Compliance Team"
       ].join("\n")
     : "Please complete your pending compliance course.";
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
       <Section title="Compliance reporting" subtitle="Track completion by employee, department, and role, then export the audit-ready view as CSV exactly as described in the SRS.">
-        <div className="overflow-auto rounded-[1.4rem] border border-foreground/10 bg-white">
+        <div className="overflow-auto rounded-[1.4rem] border border-foreground/10 bg-white dark:border-white/8 dark:bg-[#13212a]">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-foreground/10 bg-background/70 text-muted-foreground">
               <tr>
@@ -162,7 +162,7 @@ export function CompliancePanel() {
 
         <div className="mt-6 rounded-[1.5rem] border border-border/70 bg-background/75 p-4 shadow-soft dark:border-white/8 dark:bg-white/5">
           <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-cyan-800 dark:text-cyan-200" />
+            <Mail className="h-4 w-4 text-[#1A1A2E] dark:text-[#F5C766]" />
             <p className="text-sm font-semibold">Email sending function</p>
           </div>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -237,7 +237,7 @@ export function CertificatesPanel() {
       <Section title="Certificate register" subtitle="Download, verify, or revoke generated certificates from a central register.">
         <div className="grid gap-4">
           {state.certificates.map((certificate) => (
-            <div key={certificate.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5">
+            <div key={certificate.id} className="rounded-[1.5rem] border border-foreground/10 bg-white p-5 dark:border-white/8 dark:bg-[#13212a]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-serif text-2xl">{certificate.courseTitle}</p>
@@ -286,9 +286,9 @@ export function BillingPanel() {
         <Section title="Plan management" subtitle="Switch between Starter, Growth, and Professional and see seat economics update immediately.">
           <div className="grid gap-4 md:grid-cols-3">
             {(Object.keys(planMatrix) as Array<keyof typeof planMatrix>).map((plan) => (
-              <div key={plan} className={`overflow-hidden rounded-[1.85rem] border p-5 shadow-soft transition ${state.billing.plan === plan ? "border-cyan-900/15 bg-[linear-gradient(160deg,#0b3240,#145a71_58%,#ff8a1a)] text-white shadow-glow dark:border-cyan-400/20" : "border-border/70 bg-card/85 dark:border-white/8 dark:bg-white/5"}`}>
+              <div key={plan} className={`overflow-hidden rounded-[1.85rem] border p-5 shadow-soft transition ${state.billing.plan === plan ? "border-[#E8A020]/25 bg-[linear-gradient(160deg,#1A1A2E,#2D2D50_58%,#E8A020)] text-white shadow-glow dark:border-[#E8A020]/25" : "border-border/70 bg-card/85 dark:border-white/8 dark:bg-white/5"}`}>
                 <p className="text-pretty-wrap font-serif text-[clamp(2rem,2vw,2.45rem)] leading-none">{plan}</p>
-                <p className={`text-pretty-wrap mt-3 text-sm leading-6 ${state.billing.plan === plan ? "text-cyan-100/80" : "text-muted-foreground"}`}>
+                <p className={`text-pretty-wrap mt-3 text-sm leading-6 ${state.billing.plan === plan ? "text-white/80" : "text-muted-foreground"}`}>
                   ${planMatrix[plan].price}/mo · {planMatrix[plan].seatLimit} seats · ${planMatrix[plan].overagePerSeat}/seat overage
                 </p>
                 <PrimaryButton className="mt-4 w-full text-center" onClick={() => updatePlan(plan)}>
@@ -300,13 +300,13 @@ export function BillingPanel() {
         </Section>
 
         <Section title="Seat utilization" subtitle="Seat alerts and overage behavior are part of the frontend demo too.">
-          <div className="rounded-[1.4rem] border border-foreground/10 bg-white p-4">
+          <div className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Active students</p>
               <p className="text-sm text-muted-foreground">{utilization}% utilized</p>
             </div>
             <input
-              className="mt-5 w-full accent-cyan-800"
+              className="mt-5 w-full accent-[#E8A020]"
               type="range"
               min={10}
               max={2200}
@@ -314,7 +314,7 @@ export function BillingPanel() {
               onChange={(event) => updateActiveStudents(Number(event.target.value))}
             />
             <div className="mt-4 h-3 overflow-hidden rounded-full bg-muted">
-              <div className="h-full rounded-full bg-gradient-to-r from-cyan-900 via-cyan-600 to-orange-500" style={{ width: `${Math.min(100, utilization)}%` }} />
+              <div className="h-full rounded-full bg-gradient-to-r from-[#1A1A2E] via-[#2D2D50] to-[#E8A020]" style={{ width: `${Math.min(100, utilization)}%` }} />
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Current overage charge: <span className="font-semibold text-foreground">${overage}</span>
@@ -368,7 +368,7 @@ export function SeatUtilizationPanel() {
         </div>
 
         <input
-          className="mt-6 w-full accent-cyan-800"
+          className="mt-6 w-full accent-[#E8A020]"
           type="range"
           min={10}
           max={2200}
@@ -394,7 +394,7 @@ export function SeatUtilizationPanel() {
         </div>
 
         <div className="mt-5 h-3 overflow-hidden rounded-full bg-muted/80 dark:bg-white/10">
-          <div className="h-full rounded-full bg-gradient-to-r from-cyan-900 via-cyan-600 to-orange-500" style={{ width: `${Math.min(100, utilization)}%` }} />
+          <div className="h-full rounded-full bg-gradient-to-r from-[#1A1A2E] via-[#2D2D50] to-[#E8A020]" style={{ width: `${Math.min(100, utilization)}%` }} />
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">
@@ -423,26 +423,26 @@ export function PlanManagementPanel() {
               key={plan}
               className={`relative overflow-hidden rounded-[1.9rem] border p-4 sm:p-5 ${
                 active
-                  ? "border-cyan-900/15 bg-[linear-gradient(160deg,#0b3240,#145a71_58%,#ff8a1a)] text-white shadow-glow dark:border-cyan-400/20"
+                  ? "border-[#E8A020]/25 bg-[linear-gradient(160deg,#1A1A2E,#2D2D50_58%,#E8A020)] text-white shadow-glow dark:border-[#E8A020]/25"
                   : "border-border/70 bg-card/85 shadow-soft dark:border-white/8 dark:bg-white/5"
               }`}
             >
               <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.24),transparent_55%)]" />
               <div className="relative">
                 <div className="flex items-start justify-end gap-3">
-                  <div className={`shrink-0 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.24em] ${active ? "bg-white/12 text-white" : "bg-cyan-950/6 text-cyan-900 dark:bg-white/10 dark:text-cyan-100"}`}>
+                  <div className={`shrink-0 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.24em] ${active ? "bg-white/12 text-white" : "bg-[#1A1A2E]/6 text-[#1A1A2E] dark:bg-white/10 dark:text-[#F5C766]"}`}>
                     {planMatrix[plan].seatLimit} seats
                   </div>
                 </div>
 
                 <div className="mt-4 min-w-0">
                   <p className={`font-serif ${planTitleClass} leading-[0.92] tracking-[-0.05em]`}>{plan}</p>
-                  <p className={`mt-2 text-xs font-medium uppercase tracking-[0.24em] ${active ? "text-cyan-100/78" : "text-muted-foreground"}`}>
+                  <p className={`mt-2 text-xs font-medium uppercase tracking-[0.24em] ${active ? "text-white/78" : "text-muted-foreground"}`}>
                     {active ? "Active tier" : "Available tier"}
                   </p>
                 </div>
 
-                <p className={`text-pretty-wrap mt-4 text-sm leading-7 ${active ? "text-cyan-100/82" : "text-muted-foreground"}`}>
+                <p className={`text-pretty-wrap mt-4 text-sm leading-7 ${active ? "text-white/82" : "text-muted-foreground"}`}>
                   ${planMatrix[plan].price} / month
                   <br />
                   ${planMatrix[plan].overagePerSeat} per extra seat
@@ -458,7 +458,7 @@ export function PlanManagementPanel() {
                 </div>
 
                 <PrimaryButton
-                  className={`mt-5 w-full text-center ${active ? "bg-white text-cyan-950 ring-0 hover:shadow-soft" : ""}`}
+                  className={`mt-5 w-full text-center ${active ? "bg-white text-[#1A1A2E] ring-0 hover:shadow-soft" : ""}`}
                   onClick={() => updatePlan(plan)}
                   disabled={active}
                 >
@@ -480,7 +480,7 @@ export function NotificationsPanel() {
     <Section title="Notification center" subtitle="Transactional, compliance, billing, and live-class notices are all visible in one stream.">
       <div className="grid gap-3">
         {state.notifications.map((notification) => (
-          <div key={notification.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4">
+          <div key={notification.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Badge>{notification.type}</Badge>
@@ -501,7 +501,7 @@ export function AuditPanel() {
 
   return (
     <Section title="Audit trail" subtitle="Administrative actions, target objects, timestamp, and IP metadata remain visible for operational trust.">
-      <div className="overflow-auto rounded-[1.4rem] border border-foreground/10 bg-white">
+      <div className="overflow-auto rounded-[1.4rem] border border-foreground/10 bg-white dark:border-white/8 dark:bg-[#13212a]">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-foreground/10 bg-background/70 text-muted-foreground">
             <tr>

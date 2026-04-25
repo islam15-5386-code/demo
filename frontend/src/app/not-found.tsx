@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="container flex min-h-[70vh] flex-col items-center justify-center py-20 text-center">
-      <p className="rounded-full border border-foreground/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground shadow-soft">
+      <p className="rounded-full border border-foreground/10 bg-white/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground shadow-soft dark:border-white/8 dark:bg-white/5">
         Route not found
       </p>
       <h1 className="mt-6 font-serif text-6xl">404</h1>

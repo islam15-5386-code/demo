@@ -50,7 +50,7 @@ function GenericRoster({
     <Section title={title} subtitle="Role-based access and directory visibility are part of the SRS and surfaced here in the frontend.">
       <div className="grid gap-3">
         {users.map((user) => (
-          <div key={user.email} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4">
+          <div key={user.email} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-semibold">{user.name}</p>

@@ -18,7 +18,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Betopia LMS",
+  title: "Smart LMS",
   description: "Premium multi-tenant LMS frontend built with Next.js."
 };
 

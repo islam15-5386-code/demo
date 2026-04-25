@@ -139,7 +139,7 @@ function buildLocalMeetingUrl(title: string) {
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return `https://meet.jit.si/Betopia-${roomName || "Live-Class"}`;
+  return `https://meet.jit.si/SmartLMS-${roomName || "Live-Class"}`;
 }
 
 function normalizeState(partial?: Partial<MockLmsState>): MockLmsState {

@@ -48,7 +48,7 @@ export function StudentAssessmentPanel() {
           {mySubmissions.map((submission) => {
             const assessment = state.assessments.find((item) => item.id === submission.assessmentId);
             return (
-              <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4">
+              <div key={submission.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-4 dark:border-white/8 dark:bg-[#13212a]">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-semibold">{assessment?.title ?? "Assessment"}</p>
                   <Badge>{submission.score}%</Badge>
@@ -204,7 +204,7 @@ export function StudentLiveClassesPanel() {
                   {liveClass.status === "live" ? "Join live class" : "Open live room"}
                 </PrimaryButton>
                 {liveClass.recordingUrl ? (
-                  <SecondaryButton onClick={() => window.open(liveClass.recordingUrl, "_blank", "noopener,noreferrer")}>
+                  <SecondaryButton onClick={() => window.open(liveClass.recordingUrl ?? undefined, "_blank", "noopener,noreferrer")}>
                     Watch recording
                   </SecondaryButton>
                 ) : null}

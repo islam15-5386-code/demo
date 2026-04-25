@@ -51,7 +51,7 @@ export function buildCertificateHtml({
     month: "long",
     year: "numeric"
   });
-  const institutionName = escapeHtml(branding.tenantName || "Betopia LMS");
+  const institutionName = escapeHtml(branding.tenantName || "Smart LMS");
   const logoText = escapeHtml((branding.logoText || "BT").slice(0, 3).toUpperCase());
   const customDomain = escapeHtml(branding.customDomain || "betopiaacademy.com");
   const primary = branding.primaryColor || "#153b4b";
@@ -446,7 +446,7 @@ export function buildCertificateHtml({
       <div class="sign">
         <div class="line"></div>
         <strong>Chief Operating Officer</strong>
-        <span>Betopia LMS</span>
+        <span>Smart LMS</span>
       </div>
     </footer>
   </article>
@@ -526,14 +526,14 @@ export function Section({
     <section
       className={`rounded-[24px] border p-6 shadow-soft ${
         accent
-          ? "border-cyan-900/15 bg-cyan-950 text-white shadow-glow dark:border-cyan-400/15 dark:bg-[#0c2430]"
+          ? "border-[#E8A020]/25 bg-[#1A1A2E] text-white shadow-glow dark:border-[#E8A020]/25 dark:bg-[#151526]"
           : "border-border/70 bg-card/80 backdrop-blur dark:border-white/8 dark:bg-white/5"
       }`}
     >
       <div className="flex flex-col gap-2">
         <h2 className="font-serif text-3xl">{title}</h2>
         {subtitle ? (
-          <p className={`text-sm leading-6 ${accent ? "text-cyan-100/75" : "text-muted-foreground"}`}>{subtitle}</p>
+          <p className={`text-sm leading-6 ${accent ? "text-white/75" : "text-muted-foreground"}`}>{subtitle}</p>
         ) : null}
       </div>
       <div className="mt-6">{children}</div>
@@ -561,7 +561,7 @@ export function StatCard({
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
         {icon ? (
-          <div className="rounded-[18px] bg-cyan-950/6 p-2.5 text-cyan-800 dark:bg-white/10 dark:text-cyan-200">
+          <div className="rounded-[18px] bg-[#1A1A2E]/6 p-2.5 text-[#1A1A2E] dark:bg-white/10 dark:text-[#E8A020]">
             {icon}
           </div>
         ) : null}
@@ -600,7 +600,7 @@ export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`min-h-[3.35rem] w-full rounded-[14px] border border-border/80 bg-card px-4 py-3 text-sm shadow-soft outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-700/30 focus:ring-2 focus:ring-cyan-800/10 dark:border-white/8 dark:bg-white/5 ${props.className ?? ""}`}
+      className={`min-h-[3.35rem] w-full rounded-[14px] border border-border/80 bg-card px-4 py-3 text-sm shadow-soft outline-none transition placeholder:text-muted-foreground/70 focus:border-[#E8A020]/70 focus:ring-2 focus:ring-[#E8A020]/15 dark:border-white/8 dark:bg-white/5 ${props.className ?? ""}`}
     />
   );
 }
@@ -609,7 +609,7 @@ export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
-      className={`min-h-[160px] w-full rounded-[14px] border border-border/80 bg-card px-4 py-3 text-sm shadow-soft outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-700/30 focus:ring-2 focus:ring-cyan-800/10 dark:border-white/8 dark:bg-white/5 ${props.className ?? ""}`}
+      className={`min-h-[160px] w-full rounded-[14px] border border-border/80 bg-card px-4 py-3 text-sm shadow-soft outline-none transition placeholder:text-muted-foreground/70 focus:border-[#E8A020]/70 focus:ring-2 focus:ring-[#E8A020]/15 dark:border-white/8 dark:bg-white/5 ${props.className ?? ""}`}
     />
   );
 }
@@ -618,7 +618,7 @@ export function SelectInput(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`min-h-[3.35rem] w-full rounded-[14px] border border-border/80 bg-card px-4 py-3 text-sm shadow-soft outline-none transition focus:border-cyan-700/30 focus:ring-2 focus:ring-cyan-800/10 dark:border-white/8 dark:bg-white/5 ${props.className ?? ""}`}
+      className={`min-h-[3.35rem] w-full rounded-[14px] border border-border/80 bg-card px-4 py-3 text-sm shadow-soft outline-none transition focus:border-[#E8A020]/70 focus:ring-2 focus:ring-[#E8A020]/15 dark:border-white/8 dark:bg-white/5 ${props.className ?? ""}`}
     />
   );
 }
@@ -627,7 +627,7 @@ export function PrimaryButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#0b3f51_0%,#146c82_52%,#ff7a00_100%)] px-5 py-3 text-sm font-semibold text-white shadow-glow ring-1 ring-white/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-20px_rgba(20,108,130,0.55)] disabled:cursor-not-allowed disabled:opacity-60 ${props.className ?? ""}`}
+      className={`inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#1A1A2E_0%,#2D2D50_58%,#E8A020_100%)] px-5 py-3 text-sm font-semibold text-white shadow-glow ring-1 ring-white/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-20px_rgba(232,160,32,0.58)] disabled:cursor-not-allowed disabled:opacity-60 ${props.className ?? ""}`}
     />
   );
 }
@@ -636,7 +636,7 @@ export function SecondaryButton(props: ButtonHTMLAttributes<HTMLButtonElement>) 
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center rounded-full border border-border/80 bg-card/85 px-5 py-3 text-sm font-semibold text-foreground shadow-soft transition duration-300 hover:-translate-y-0.5 hover:border-cyan-900/25 hover:bg-card dark:border-white/10 dark:bg-white/5 ${props.className ?? ""}`}
+      className={`inline-flex items-center justify-center rounded-full border border-[#1A1A2E]/15 bg-card/85 px-5 py-3 text-sm font-semibold text-foreground shadow-soft transition duration-300 hover:-translate-y-0.5 hover:border-[#E8A020]/70 hover:bg-card dark:border-white/10 dark:bg-white/5 ${props.className ?? ""}`}
     />
   );
 }

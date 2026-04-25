@@ -1,0 +1,21 @@
+{
+  "name": "smart-lms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart LMS - Full-stack Learning Management System",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}

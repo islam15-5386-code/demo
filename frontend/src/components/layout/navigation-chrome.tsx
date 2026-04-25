@@ -147,8 +147,8 @@ function NavChip({ link, pathname }: { link: NavLink; pathname: string }) {
       href={link.href}
       className={`group relative flex min-h-[3.35rem] min-w-[6.9rem] items-center justify-center overflow-hidden rounded-full border px-3 py-2 text-center transition duration-300 ${
         active
-          ? "border-cyan-900/10 bg-cyan-950 text-white shadow-glow"
-          : "border-white/60 bg-white/72 text-foreground/80 shadow-soft hover:-translate-y-0.5 hover:border-cyan-900/15 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+          ? "border-[#E8A020]/30 bg-[#1A1A2E] text-white shadow-glow"
+          : "border-white/60 bg-white/72 text-foreground/80 shadow-soft hover:-translate-y-0.5 hover:border-[#E8A020]/50 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
       }`}
     >
       <span
@@ -157,11 +157,11 @@ function NavChip({ link, pathname }: { link: NavLink; pathname: string }) {
         }`}
       />
       <span className="relative flex items-center justify-center gap-2">
-        <span className={active ? "text-cyan-100" : "text-cyan-800"}>{link.icon}</span>
+        <span className={active ? "text-[#E8A020]" : "text-[#1A1A2E] dark:text-[#E8A020]"}>{link.icon}</span>
         <span className="flex flex-col items-center leading-none">
           <span className="text-sm font-semibold">{link.label}</span>
           {link.note ? (
-            <span className={`mt-1 text-[10px] uppercase tracking-[0.22em] ${active ? "text-cyan-100/70" : "text-muted-foreground"}`}>
+            <span className={`mt-1 text-[10px] uppercase tracking-[0.22em] ${active ? "text-white/70" : "text-muted-foreground"}`}>
               {link.note}
             </span>
           ) : null}
@@ -179,11 +179,11 @@ function DockChip({ link, pathname }: { link: NavLink; pathname: string }) {
       href={link.href}
       className={`flex min-w-[3.8rem] flex-col items-center gap-1 rounded-[1.4rem] px-3 py-2 text-[11px] font-medium transition ${
         active
-          ? "bg-cyan-950 text-white shadow-glow"
+          ? "bg-[#1A1A2E] text-white shadow-glow"
           : "text-foreground/70 hover:bg-white/80 hover:text-foreground dark:hover:bg-white/10"
       }`}
     >
-      <span className={active ? "text-cyan-100" : "text-cyan-800"}>{link.icon}</span>
+      <span className={active ? "text-[#E8A020]" : "text-[#1A1A2E] dark:text-[#E8A020]"}>{link.icon}</span>
       <span>{link.label}</span>
     </Link>
   );
@@ -237,15 +237,15 @@ export function NavigationChrome() {
         <div className="mx-auto w-full max-w-[1840px] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3">
-              <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-[1.45rem] bg-cyan-950 text-background shadow-glow">
+              <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-[1.45rem] bg-[linear-gradient(135deg,#1A1A2E_55%,#E8A020)] text-white shadow-glow">
                 <span className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.38),transparent_46%)]" />
-                <span className="relative font-serif text-lg">BT</span>
+                <span className="relative font-serif text-lg">SL</span>
               </div>
               <div>
-                <p className="font-serif text-xl font-semibold leading-none">Betopia LMS</p>
+                <p className="font-serif text-xl font-semibold leading-none">Smart LMS</p>
                 <div className="mt-1 flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                  <span>Dynamic interface</span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(16,185,129,0.7)]" />
+                  <span>Learning platform</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#E8A020] shadow-[0_0_16px_rgba(232,160,32,0.7)]" />
                 </div>
               </div>
             </Link>
@@ -262,10 +262,10 @@ export function NavigationChrome() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-foreground/15 bg-card/80 px-4 text-sm font-semibold text-foreground shadow-soft transition hover:-translate-y-0.5 hover:border-cyan-900/20 dark:border-white/10 dark:bg-white/5"
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-foreground/15 bg-card/80 px-4 text-sm font-semibold text-foreground shadow-soft transition hover:-translate-y-0.5 hover:border-[#E8A020]/60 dark:border-white/10 dark:bg-white/5"
                 aria-label={mounted ? `Switch to ${theme === "light" ? "dark" : "light"} mode` : "Toggle theme"}
               >
-                {mounted && theme === "dark" ? <SunMedium className="h-4 w-4 text-orange-400" /> : <MoonStar className="h-4 w-4 text-cyan-700" />}
+                {mounted && theme === "dark" ? <SunMedium className="h-4 w-4 text-[#E8A020]" /> : <MoonStar className="h-4 w-4 text-[#1A1A2E]" />}
                 <span className="hidden sm:inline">{mounted && theme === "dark" ? "Day mode" : "Night mode"}</span>
               </button>
               {authReady && isAuthenticated ? (
@@ -273,13 +273,13 @@ export function NavigationChrome() {
                   <button
                     type="button"
                     onClick={() => void signOut().then(() => router.replace("/login"))}
-                    className="hidden rounded-full border border-foreground/15 bg-card/80 px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-cyan-900/20 md:inline-flex dark:border-white/10 dark:bg-white/5"
+                    className="hidden rounded-full border border-foreground/15 bg-card/80 px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-[#E8A020]/60 md:inline-flex dark:border-white/10 dark:bg-white/5"
                   >
                     Sign out
                   </button>
                   <Link
                     href={workspaceHref}
-                    className="hidden rounded-full border border-foreground/15 bg-card/80 px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-cyan-900/20 md:inline-flex dark:border-white/10 dark:bg-white/5"
+                    className="hidden rounded-full border border-foreground/15 bg-card/80 px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-[#E8A020]/60 md:inline-flex dark:border-white/10 dark:bg-white/5"
                   >
                     {currentUser?.name}
                   </Link>
@@ -287,14 +287,14 @@ export function NavigationChrome() {
               ) : (
                 <Link
                   href="/login"
-                  className="hidden rounded-full border border-foreground/15 bg-card/80 px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-cyan-900/20 md:inline-flex dark:border-white/10 dark:bg-white/5"
+                  className="hidden rounded-full border border-foreground/15 bg-card/80 px-4 py-2 text-sm transition hover:-translate-y-0.5 hover:border-[#E8A020]/60 md:inline-flex dark:border-white/10 dark:bg-white/5"
                 >
                   Sign in
                 </Link>
               )}
               <Link
                 href="/demo"
-                className="rounded-full bg-gradient-to-r from-cyan-900 via-cyan-700 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5"
+                className="rounded-full bg-[linear-gradient(135deg,#1A1A2E,#E8A020)] px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:-translate-y-0.5"
               >
                 Book demo
               </Link>
@@ -303,7 +303,7 @@ export function NavigationChrome() {
 
           <div className="mt-4 hidden xl:block">
             <div className="flex items-center gap-3 overflow-x-auto rounded-[1.75rem] border border-white/60 bg-white/60 p-3 shadow-soft backdrop-blur dark:border-white/10 dark:bg-white/5">
-              <div className="shrink-0 rounded-full bg-cyan-950 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-cyan-100">
+              <div className="shrink-0 rounded-full bg-[#1A1A2E] px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-[#E8A020]">
                 {context.label}
               </div>
               <div className="flex min-w-max items-center gap-2">
@@ -332,7 +332,7 @@ export function FancyRouteTabs({ title, links }: RouteTabsProps) {
 
   return (
     <section className="mx-auto w-full max-w-[1840px] px-4 pb-24 sm:px-6 xl:pb-20 lg:px-8">
-      <div className="relative overflow-hidden rounded-[2.2rem] border border-foreground/10 bg-white/78 p-6 shadow-glow backdrop-blur">
+      <div className="relative overflow-hidden rounded-[2.2rem] border border-foreground/10 bg-white/78 p-6 shadow-glow backdrop-blur dark:border-white/8 dark:bg-[#13212a]/90">
         <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top_left,rgba(23,126,137,0.18),transparent_48%),radial-gradient(circle_at_top_right,rgba(255,122,0,0.14),transparent_34%)]" />
         <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
@@ -354,8 +354,8 @@ export function FancyRouteTabs({ title, links }: RouteTabsProps) {
                 href={link.href}
                 className={`group relative min-w-[15rem] flex-1 overflow-hidden rounded-[1.7rem] border px-5 py-5 transition duration-300 ${
                   active
-                    ? "border-cyan-900/10 bg-cyan-950 text-white shadow-glow"
-                    : "border-foreground/10 bg-background/90 shadow-soft hover:-translate-y-1 hover:border-cyan-900/15 hover:bg-white"
+                    ? "border-[#E8A020]/30 bg-[#1A1A2E] text-white shadow-glow"
+                    : "border-foreground/10 bg-background/90 shadow-soft hover:-translate-y-1 hover:border-[#E8A020]/50 hover:bg-white dark:border-white/8 dark:bg-white/5 dark:hover:bg-white/10"
                 }`}
               >
                 <div
@@ -365,17 +365,17 @@ export function FancyRouteTabs({ title, links }: RouteTabsProps) {
                 />
                 <div className="relative flex items-start justify-between gap-4">
                   <div>
-                    <p className={`text-[10px] uppercase tracking-[0.24em] ${active ? "text-cyan-100/70" : "text-muted-foreground"}`}>
+                    <p className={`text-[10px] uppercase tracking-[0.24em] ${active ? "text-white/70" : "text-muted-foreground"}`}>
                       Tab {String(index + 1).padStart(2, "0")}
                     </p>
                     <p className="mt-3 font-serif text-2xl leading-none">{link.label}</p>
-                    <p className={`mt-4 text-sm ${active ? "text-cyan-100/80" : "text-muted-foreground"}`}>
+                    <p className={`mt-4 text-sm ${active ? "text-white/80" : "text-muted-foreground"}`}>
                       {link.href}
                     </p>
                   </div>
                   <div
                     className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em] ${
-                      active ? "bg-white/12 text-white" : "bg-cyan-950/6 text-cyan-900"
+                      active ? "bg-white/12 text-white" : "bg-[#1A1A2E]/6 text-[#1A1A2E]"
                     }`}
                   >
                     {active ? "Active" : "Open"}
