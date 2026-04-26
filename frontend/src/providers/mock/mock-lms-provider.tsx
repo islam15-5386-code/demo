@@ -80,7 +80,7 @@ type MockLmsContextType = {
   signIn: (email: string, password: string) => Promise<UserProfile>;
   signUp: (name: string, email: string, password: string, role: Role) => Promise<UserProfile>;
   signOut: () => Promise<void>;
-  resetDemo: () => void;
+  resetDemo: () => Promise<void>;
   updateBranding: (branding: TenantBranding) => Promise<void>;
   createCourse: (payload: CreateCoursePayload) => Promise<void>;
   publishCourse: (courseId: string) => Promise<void>;
@@ -314,12 +314,12 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
       setCurrentUser(null);
       setState(seedState);
     },
-    resetDemo() {
+    async resetDemo() {
       if (currentUser) {
-        return;
+        await signOutFromBackend();
       }
-
       setState(seedState);
+      setCurrentUser(null);
     },
     async updateBranding(branding) {
       if (currentUser) {

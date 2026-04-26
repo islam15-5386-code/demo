@@ -15,61 +15,34 @@ class UserSeeder extends Seeder
         $roleIds = Role::query()->pluck('id', 'name');
         $demoTenant = Tenant::query()->orderBy('id')->first();
 
-        // Test Login User - Student
-        $testStudent = User::query()->updateOrCreate(
-            ['email' => 'student@example.com'],
-            [
-                'tenant_id' => $demoTenant?->id,
-                'name' => 'Test Student',
-                'phone' => '01700000001',
-                'password' => 'password123',
-                'role' => 'student',
-                'department' => 'CSE',
-                'city' => $demoTenant?->city ?? 'Dhaka',
-                'address' => $demoTenant?->address ?? 'Test Address',
-                'is_active' => true,
-            ]
-        );
+        $demoLogins = [
+            ['name' => 'Test Student', 'email' => 'student@example.com', 'phone' => '01700000001', 'role' => 'student', 'department' => 'CSE'],
+            ['name' => 'Test Admin', 'email' => 'admin@example.com', 'phone' => '01700000002', 'role' => 'admin', 'department' => 'Administration'],
+            ['name' => 'Test Teacher', 'email' => 'teacher@example.com', 'phone' => '01700000003', 'role' => 'teacher', 'department' => 'Faculty'],
+            ['name' => 'BSMS Student', 'email' => 'student@bsms.com', 'phone' => '01700000101', 'role' => 'student', 'department' => 'CSE'],
+            ['name' => 'BSMS Admin', 'email' => 'admin@bsms.com', 'phone' => '01700000102', 'role' => 'admin', 'department' => 'Administration'],
+            ['name' => 'BSMS Teacher', 'email' => 'teacher@bsms.com', 'phone' => '01700000103', 'role' => 'teacher', 'department' => 'Faculty'],
+        ];
 
-        // Test Login User - Admin
-        $testAdmin = User::query()->updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'tenant_id' => $demoTenant?->id,
-                'name' => 'Test Admin',
-                'phone' => '01700000002',
-                'password' => 'password123',
-                'role' => 'admin',
-                'department' => 'Administration',
-                'city' => $demoTenant?->city ?? 'Dhaka',
-                'address' => $demoTenant?->address ?? 'Test Address',
-                'is_active' => true,
-            ]
-        );
+        foreach ($demoLogins as $demoLogin) {
+            $user = User::query()->updateOrCreate(
+                ['email' => $demoLogin['email']],
+                [
+                    'tenant_id' => $demoTenant?->id,
+                    'name' => $demoLogin['name'],
+                    'phone' => $demoLogin['phone'],
+                    'password' => 'password123',
+                    'role' => $demoLogin['role'],
+                    'department' => $demoLogin['department'],
+                    'city' => $demoTenant?->city ?? 'Dhaka',
+                    'address' => $demoTenant?->address ?? 'Test Address',
+                    'is_active' => true,
+                ]
+            );
 
-        $testTeacher = User::query()->updateOrCreate(
-            ['email' => 'teacher@example.com'],
-            [
-                'tenant_id' => $demoTenant?->id,
-                'name' => 'Test Teacher',
-                'phone' => '01700000003',
-                'password' => 'password123',
-                'role' => 'teacher',
-                'department' => 'Faculty',
-                'city' => $demoTenant?->city ?? 'Dhaka',
-                'address' => $demoTenant?->address ?? 'Test Address',
-                'is_active' => true,
-            ]
-        );
-
-        if (isset($roleIds['student'])) {
-            $testStudent->roles()->sync([$roleIds['student']]);
-        }
-        if (isset($roleIds['admin'])) {
-            $testAdmin->roles()->sync([$roleIds['admin']]);
-        }
-        if (isset($roleIds['teacher'])) {
-            $testTeacher->roles()->sync([$roleIds['teacher']]);
+            if (isset($roleIds[$demoLogin['role']])) {
+                $user->roles()->syncWithoutDetaching([$roleIds[$demoLogin['role']]]);
+            }
         }
 
         $nameIndex = 0;

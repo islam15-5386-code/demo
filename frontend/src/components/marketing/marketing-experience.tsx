@@ -353,6 +353,24 @@ export function HomeExperience() {
       <section className="relative -mt-px overflow-hidden bg-[#A6ABB5] text-[#111827]">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:28px_28px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_25%,rgba(255,161,10,0.12),transparent_22%),radial-gradient(circle_at_80%_18%,rgba(255,255,255,0.1),transparent_18%)]" />
+        <div className={`${pageFrame} pointer-events-none absolute inset-x-0 top-0 z-20`}>
+          <div className="flex justify-end pt-6">
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/45 bg-white/20 p-1 shadow-soft backdrop-blur">
+              <Link
+                href="/signup"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-[#111827] transition hover:bg-white/40"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-full bg-[#1A1A2E] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#111827]"
+              >
+                Log in
+              </Link>
+            </div>
+          </div>
+        </div>
         <div className={`${pageFrame} relative grid min-h-[780px] items-center gap-10 pb-28 pt-20 lg:grid-cols-[0.86fr_1.14fr] lg:pb-32 lg:pt-28`}>
           <div className="hero-fade-up mx-auto max-w-2xl space-y-6 lg:mx-0 lg:pl-[9vw]">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/25 px-4 py-2 text-xs font-bold text-[#111827] shadow-soft backdrop-blur">
