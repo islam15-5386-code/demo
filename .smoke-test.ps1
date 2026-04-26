@@ -25,7 +25,7 @@ $null = Api Post "/api/v1/courses/$courseId/publish" $teacher.token
 $assessment = Api Post '/api/v1/teacher/assessments/generate' $teacher.token @{ course_id = [int]$courseId; title = 'Smoke Test Assessment'; type = 'MCQ'; question_count = 4; source_text = 'routing controllers middleware validation requests authentication authorization postgresql reporting analytics' }
 $assessmentId = [string]$assessment.data.id
 $null = Api Post "/api/v1/assessments/$assessmentId/publish" $teacher.token
-$live = Api Post '/api/v1/live-classes' $teacher.token @{ course_id = [int]$courseId; title = 'Smoke Test Live Session'; start_at = [DateTime]::UtcNow.AddDays(1).ToString('o'); duration_minutes = 45 }
+$live = Api Post '/api/v1/live-classes' $teacher.token @{ course_id = [int]$courseId; title = 'Smoke Test Live Session'; scheduled_at = [DateTime]::UtcNow.AddDays(1).ToString('o'); duration_minutes = 45 }
 $liveId = [string]$live.data.id
 $null = Api Patch "/api/v1/live-classes/$liveId/status" $teacher.token @{ status = 'live' }
 $null = Api Post "/api/v1/courses/$courseId/lessons/$lessonId/complete" $student.token
@@ -33,5 +33,5 @@ $submission = Api Post "/api/v1/assessments/$assessmentId/submit" $student.token
 $certificate = Api Post '/api/v1/certificates' $admin.token @{ user_id = 8; course_id = [int]$courseId }
 $null = Api Patch '/api/v1/billing' $admin.token @{ plan = 'Growth'; active_students = 430 }
 $reminders = Api Post '/api/v1/reports/compliance/reminders' $admin.token @{}
-$csv = Invoke-WebRequest -Method Get -Uri 'http://127.0.0.1:8000/api/v1/reports/compliance/export/csv' -Headers @{ Authorization = "Bearer $($admin.token)"; Accept = 'text/csv' }
+$csv = Invoke-WebRequest -UseBasicParsing -Method Get -Uri 'http://127.0.0.1:8000/api/v1/reports/compliance/export/csv' -Headers @{ Authorization = "Bearer $($admin.token)"; Accept = 'text/csv' }
 ([ordered]@{ teacher_course_id = $courseId; teacher_assessment_id = $assessmentId; teacher_live_class_id = $liveId; student_submission_id = [string]$submission.data.submission.id; certificate_id = [string]$certificate.data.id; reminder_mailer = [string]$reminders.data.mailer; csv_status = [int]$csv.StatusCode } | ConvertTo-Json -Depth 6) | Set-Content '.smoke-test.json'
