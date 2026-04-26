@@ -1,6 +1,6 @@
 # Betopia LMS Backend
 
-Laravel backend for the Betopia LMS frontend demo, built for PostgreSQL only.
+Laravel backend for the Betopia LMS frontend demo. Default database is PostgreSQL.
 
 ## Folder map
 
@@ -24,17 +24,90 @@ Laravel backend for the Betopia LMS frontend demo, built for PostgreSQL only.
 - `routes/api.php`
   Versioned API routes under `/api/v1/...` plus frontend-compatible teacher aliases under `/api/teacher/...`.
 
-## Setup
+## PostgreSQL Setup (Default)
 
-1. Configure PostgreSQL in `.env`
-2. Run `composer install`
-3. Run `php artisan key:generate`
-4. Run `php artisan migrate:fresh --seed`
-5. Run `php artisan serve`
+1. Create database `lms_db`.
+
+If `psql` is available:
+
+```bash
+psql -U postgres -h 127.0.0.1 -p 5432 -c "CREATE DATABASE lms_db;"
+```
+
+2. Configure `.env`:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=lms_db
+DB_USERNAME=postgres
+DB_PASSWORD=password
+```
+
+3. Install dependencies and prepare app:
+
+```bash
+composer install
+php artisan key:generate
+```
+
+4. Clear caches, migrate, and seed:
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan migrate:fresh --seed
+```
+
+5. Run tests:
+
+```bash
+php artisan test
+```
+
+6. Start backend server:
+
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+## Safe Database Reset
+
+Use any one of the following:
+
+```bash
+composer db:reset
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/db-reset.ps1
+```
+
+```bash
+bash scripts/db-reset.sh
+```
+
+## Demo Users
+
+Seeded credentials:
+
+- `admin@example.com` / `password123`
+- `teacher@example.com` / `password123`
+- `student@example.com` / `password123`
+
+## Optional SQLite Fallback
+
+If you need a local fallback, SQLite is still supported by Laravel config. You can switch only in local `.env`:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
 
 ## Notes
 
-- The current `.env` expects PostgreSQL at `127.0.0.1:5432`
+- Default `.env` expects PostgreSQL at `127.0.0.1:5432`
 - Sanctum is enabled for API token auth
 - Teacher note upload is implemented with local file storage
 - The AI generation and essay evaluation logic is deterministic demo logic that can later be swapped for real services

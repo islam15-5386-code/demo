@@ -50,6 +50,11 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "db:reset": [
+            "@php artisan config:clear --ansi",
+            "@php artisan cache:clear --ansi",
+            "@php artisan migrate:fresh --seed --ansi"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
