@@ -131,6 +131,52 @@ function roleForApp(role: string): Role {
   return "admin";
 }
 
+function localDemoUserFor(email: string, password: string): UserProfile | null {
+  if (password !== "password123") {
+    return null;
+  }
+
+  const normalized = email.trim().toLowerCase();
+
+  if (normalized === "admin@example.com") {
+    return {
+      id: "demo-admin-1",
+      tenantId: seedState.branding.tenantId,
+      vendorId: seedState.branding.vendorId,
+      name: "Test Admin",
+      role: "admin",
+      email: "admin@example.com",
+      department: "Operations"
+    };
+  }
+
+  if (normalized === "teacher@example.com") {
+    return {
+      id: "demo-teacher-1",
+      tenantId: seedState.branding.tenantId,
+      vendorId: seedState.branding.vendorId,
+      name: "Test Teacher",
+      role: "teacher",
+      email: "teacher@example.com",
+      department: "Faculty"
+    };
+  }
+
+  if (normalized === "student@example.com") {
+    return {
+      id: "demo-student-1",
+      tenantId: seedState.branding.tenantId,
+      vendorId: seedState.branding.vendorId,
+      name: "Test Student",
+      role: "student",
+      email: "student@example.com",
+      department: "Learner"
+    };
+  }
+
+  return null;
+}
+
 function defaultStudentName(state: MockLmsState, currentUser: UserProfile | null) {
   return currentUser?.name ?? state.users.find((user) => user.role === "student")?.name ?? "Student";
 }
@@ -281,20 +327,38 @@ export function MockLmsProvider({ children }: { children: ReactNode }) {
     authReady,
     isAuthenticated: currentUser !== null,
     async signIn(email, password) {
-      const session = await signInToBackend(email, password);
-      const nextUser = {
-        ...session.user,
-        role: roleForApp(session.user.role)
-      };
+      try {
+        const session = await signInToBackend(email, password);
+        const nextUser = {
+          ...session.user,
+          role: roleForApp(session.user.role)
+        };
 
-      setCurrentUser(nextUser);
-      setState(normalizeState({
-        ...session.bootstrap,
-        branding: session.bootstrap.branding ?? session.branding ?? seedState.branding,
-        users: session.bootstrap.users ?? [nextUser]
-      }));
+        setCurrentUser(nextUser);
+        setState(normalizeState({
+          ...session.bootstrap,
+          branding: session.bootstrap.branding ?? session.branding ?? seedState.branding,
+          users: session.bootstrap.users ?? [nextUser]
+        }));
 
-      return nextUser;
+        return nextUser;
+      } catch (error) {
+        const fallbackUser = localDemoUserFor(email, password);
+
+        if (!fallbackUser) {
+          throw error;
+        }
+
+        setCurrentUser(fallbackUser);
+        setState(normalizeState({
+          ...seedState,
+          users: seedState.users.some((user) => user.email.toLowerCase() === fallbackUser.email.toLowerCase())
+            ? seedState.users
+            : [fallbackUser, ...seedState.users]
+        }));
+
+        return fallbackUser;
+      }
     },
     async signUp(name, email, password, role) {
       const session = await registerToBackend(name, email, password, role);

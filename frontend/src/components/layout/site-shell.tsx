@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { MoonStar, SunMedium } from "lucide-react";
 
-import { NavigationChrome } from "@/components/layout/navigation-chrome";
+import { dashboardPathForRole, useMockLms } from "@/providers/mock-lms-provider";
+import { useThemeMode } from "@/providers/theme-provider";
 import type { HeroStat, Panel } from "@/lib/constants/site-data";
 
 const shellFrame = "mx-auto w-full max-w-[1840px] px-4 sm:px-6 lg:px-8";
@@ -26,24 +28,64 @@ type HeroProps = {
 
 export function SiteShell({ children }: ShellProps) {
   const pathname = usePathname();
+  const { currentUser, isAuthenticated } = useMockLms();
+  const { mounted, theme, toggleTheme } = useThemeMode();
 
   const isHome = pathname === "/";
   const isDashboard = pathname.startsWith("/admin") || pathname.startsWith("/teacher") || pathname.startsWith("/student");
-  const isLogin = pathname === "/login";
 
-  if (isHome || isDashboard || isLogin) {
+  if (isHome || isDashboard) {
     return <>{children}</>;
   }
 
+  const dashboardHref = isAuthenticated ? dashboardPathForRole(currentUser?.role) : "/login";
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 bg-grid-pattern bg-[size:90px_90px] opacity-25" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[32rem] bg-[radial-gradient(circle_at_top,rgba(232,160,32,0.18),transparent_52%),radial-gradient(circle_at_18%_18%,rgba(255,246,233,0.82),transparent_32%)]" />
-      <div className="relative z-10">
-        <NavigationChrome />
-        <main>{children}</main>
-        <SiteFooter />
+    <div className="relative min-h-screen bg-[#f2f3f7] text-[#0f172a] dark:bg-[#0b1220] dark:text-[#f8fafc]">
+      <div className="bg-[#0b1220] text-white dark:bg-[#020617]">
+        <div className="mx-auto flex w-full max-w-[1240px] items-center justify-center gap-8 px-4 py-3 text-sm font-semibold">
+          <Link href="/" className="border-b border-transparent transition hover:border-white/60">For Learners</Link>
+          <Link href="/solutions" className="border-b border-transparent transition hover:border-white/60">For Teams</Link>
+          <Link href="/about" className="border-b border-transparent transition hover:border-white/60">For Institutes</Link>
+          <Link href="/features" className="border-b border-transparent transition hover:border-white/60">For Enterprise</Link>
+        </div>
       </div>
+
+      <header className="sticky top-0 z-40 border-b border-[#d6dbe4] bg-white/95 backdrop-blur dark:border-white/10 dark:bg-[#0f172a]/95">
+        <div className="mx-auto flex w-full max-w-[1240px] items-center justify-between gap-3 px-4 py-3">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#1A1A2E_58%,#E8A020)] text-sm font-bold text-white">
+                SL
+              </div>
+              <span className="text-2xl font-bold leading-none text-[#1A1A2E] dark:text-[#f8fafc]">Smart LMS</span>
+            </Link>
+            <div className="hidden items-center gap-4 text-sm font-medium text-[#334155] md:flex dark:text-slate-300">
+              <Link href="/catalog">Explore</Link>
+              <Link href="/pricing">Pricing</Link>
+              <Link href="/features">Features</Link>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-sm font-semibold">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-lg border border-[#1A1A2E] px-3 py-2 text-[#1A1A2E] transition hover:bg-[#1A1A2E]/10 dark:border-[#E8A020] dark:text-[#E8A020]"
+              aria-label={mounted ? `Switch to ${theme === "light" ? "dark" : "light"} mode` : "Toggle theme"}
+            >
+              {mounted && theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
+            </button>
+            <Link href="/login" className="text-[#1A1A2E] dark:text-[#f8fafc]">Log In</Link>
+            <Link href={dashboardHref} className="rounded-lg border border-[#1A1A2E] px-4 py-2 text-[#1A1A2E] dark:border-[#E8A020] dark:text-[#E8A020]">
+              Open Dashboard
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main>{children}</main>
+      <SiteFooter />
     </div>
   );
 }
@@ -136,18 +178,34 @@ export const PanelGrid = FeaturePanel;
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-foreground/5 bg-white/50 py-12 backdrop-blur dark:bg-black/20">
-      <div className={`${shellFrame} flex flex-col items-center justify-between gap-6 md:flex-row`}>
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background font-serif text-lg font-bold">SL</div>
-          <span className="font-serif text-xl">Smart LMS</span>
+    <footer className="bg-[#0F172A] text-white">
+      <div className="mx-auto grid w-full max-w-[1240px] gap-8 px-4 py-12 md:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <p className="text-lg font-bold">Smart LMS</p>
+          <p className="mt-3 text-sm text-slate-300">Course delivery, live classes, AI assessments, certificates, and reporting in one platform.</p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          © 2026 Smart LMS. All rights reserved.
-        </p>
-        <div className="flex gap-6 text-sm text-muted-foreground">
-          <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
-          <Link href="/terms" className="hover:text-foreground">Terms</Link>
+        <div className="space-y-2 text-sm text-slate-300">
+          <p className="font-semibold text-white">Platform</p>
+          <Link className="block hover:text-[#E8A020]" href="/features">Features</Link>
+          <Link className="block hover:text-[#E8A020]" href="/pricing">Pricing</Link>
+          <Link className="block hover:text-[#E8A020]" href="/catalog">Catalog</Link>
+        </div>
+        <div className="space-y-2 text-sm text-slate-300">
+          <p className="font-semibold text-white">Company</p>
+          <Link className="block hover:text-[#E8A020]" href="/about">About</Link>
+          <Link className="block hover:text-[#E8A020]" href="/contact">Contact</Link>
+          <Link className="block hover:text-[#E8A020]" href="/demo">Book Demo</Link>
+        </div>
+        <div className="space-y-2 text-sm text-slate-300">
+          <p className="font-semibold text-white">Legal</p>
+          <Link className="block hover:text-[#E8A020]" href="/privacy">Privacy</Link>
+          <Link className="block hover:text-[#E8A020]" href="/terms">Terms</Link>
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex w-full max-w-[1240px] items-center justify-between gap-4 px-4 py-5 text-sm text-slate-300">
+          <p>© 2026 Smart LMS. All rights reserved.</p>
+          <p>Designed for institutes, teachers, and learners.</p>
         </div>
       </div>
     </footer>
