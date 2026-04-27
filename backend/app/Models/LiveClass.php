@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LiveClass extends Model
 {
+    use HasTenantScope;
     protected $fillable = [
         'tenant_id',
         'course_id',

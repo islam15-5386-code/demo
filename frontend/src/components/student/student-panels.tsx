@@ -328,24 +328,17 @@ export function StudentLiveClassesPanel() {
   const [showAllLiveClasses, setShowAllLiveClasses] = useState(false);
   const visibleLiveClasses = showAllLiveClasses ? state.liveClasses : state.liveClasses.slice(0, 5);
 
-  function canJoinNow(liveClass: (typeof state.liveClasses)[number]) {
-    if (liveClass.status === "cancelled" || liveClass.status === "recorded") {
-      return false;
-    }
-
-    if (liveClass.canJoin !== undefined) {
-      return liveClass.canJoin;
-    }
-
-    const startAt = new Date(liveClass.startAt).getTime();
-    const endAt = liveClass.endAt ? new Date(liveClass.endAt).getTime() : startAt + liveClass.durationMinutes * 60 * 1000;
-    const now = Date.now();
-
-    return now >= startAt - 15 * 60 * 1000 && now <= endAt + 15 * 60 * 1000;
+  function getJoinUrl(meetingUrl?: string | null, title?: string): string {
+    if (meetingUrl && meetingUrl.startsWith("http")) return meetingUrl;
+    const roomName = (title ?? "SmartLMS-Class")
+      .trim()
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return `https://meet.jit.si/SmartLMS-${roomName || "Live-Class"}`;
   }
 
   return (
-    <Section title="My live classes" subtitle="View upcoming sessions, schedule details, and session status without teacher scheduling controls.">
+    <Section title="My live classes" subtitle="Join upcoming sessions via free Jitsi Meet — no sign-up needed. Custom links set by admin will open automatically.">
       <div className="grid gap-4">
         {visibleLiveClasses.map((liveClass) => (
           <div key={liveClass.id} className="rounded-[1.4rem] border border-foreground/10 bg-white p-5 shadow-soft dark:border-white/8 dark:bg-[#13212a]">
@@ -359,6 +352,14 @@ export function StudentLiveClassesPanel() {
                 {liveClass.batchName ? <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">{liveClass.batchName}</p> : null}
               </div>
               <Badge>{liveClass.status}</Badge>
+            </div>
+            {/* Meeting link info */}
+            <div className="mt-3 rounded-[1rem] border border-foreground/8 bg-background/60 px-3 py-2 text-xs text-muted-foreground dark:border-white/6 dark:bg-white/5">
+              {liveClass.meetingUrl && liveClass.meetingUrl.startsWith("http") ? (
+                <>🔗 Custom link set by admin</>
+              ) : (
+                <>🎥 Free Jitsi Meet room — opens automatically</>
+              )}
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <div className="rounded-[1.2rem] border border-foreground/10 bg-background/70 p-3 dark:border-white/8 dark:bg-white/5">
@@ -374,21 +375,20 @@ export function StudentLiveClassesPanel() {
                 <p className="mt-2 font-semibold">{liveClass.reminder1h ? "Enabled" : "Off"}</p>
               </div>
             </div>
-            {liveClass.meetingUrl ? (
-              <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
+              {liveClass.status !== "cancelled" && liveClass.status !== "completed" && liveClass.status !== "recorded" ? (
                 <PrimaryButton
-                  disabled={!canJoinNow(liveClass)}
-                  onClick={() => window.open(liveClass.meetingUrl, "_blank", "noopener,noreferrer")}
+                  onClick={() => window.open(getJoinUrl(liveClass.meetingUrl, liveClass.title), "_blank", "noopener,noreferrer")}
                 >
-                  {liveClass.status === "live" || canJoinNow(liveClass) ? "Join Live Class" : "Join disabled"}
+                  {liveClass.status === "live" ? "🔴 Join Live Class" : "Join Class (Jitsi Meet)"}
                 </PrimaryButton>
-                {liveClass.recordingUrl ? (
-                  <SecondaryButton onClick={() => window.open(liveClass.recordingUrl ?? undefined, "_blank", "noopener,noreferrer")}>
-                    Watch recording
-                  </SecondaryButton>
-                ) : null}
-              </div>
-            ) : null}
+              ) : null}
+              {liveClass.recordingUrl ? (
+                <SecondaryButton onClick={() => window.open(liveClass.recordingUrl ?? undefined, "_blank", "noopener,noreferrer")}>
+                  Watch recording
+                </SecondaryButton>
+              ) : null}
+            </div>
           </div>
         ))}
       </div>

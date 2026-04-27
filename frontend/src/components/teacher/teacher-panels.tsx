@@ -752,12 +752,18 @@ export function LiveClassesPanel() {
   } satisfies LiveClassFormState);
   const visibleLiveClasses = showAllLiveClasses ? state.liveClasses : state.liveClasses.slice(0, 5);
 
-  async function handleGoLive(classId: string, meetingUrl?: string | null) {
-    await setLiveClassStatus(classId, "live");
+  function getJoinUrl(meetingUrl?: string | null, title?: string): string {
+    if (meetingUrl && meetingUrl.startsWith("http")) return meetingUrl;
+    const roomName = (title ?? "SmartLMS-Class")
+      .trim()
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return `https://meet.jit.si/SmartLMS-${roomName || "Live-Class"}`;
+  }
 
-    if (meetingUrl) {
-      window.open(meetingUrl, "_blank", "noopener,noreferrer");
-    }
+  async function handleGoLive(classId: string, meetingUrl?: string | null, title?: string) {
+    await setLiveClassStatus(classId, "live");
+    window.open(getJoinUrl(meetingUrl, title), "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -825,14 +831,12 @@ export function LiveClassesPanel() {
                 </div>
               ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
-                <PrimaryButton onClick={() => handleGoLive(liveClass.id, liveClass.meetingUrl)}>
+                <PrimaryButton onClick={() => handleGoLive(liveClass.id, liveClass.meetingUrl, liveClass.title)}>
                   Go live
                 </PrimaryButton>
-                {liveClass.meetingUrl ? (
-                  <SecondaryButton onClick={() => window.open(liveClass.meetingUrl, "_blank", "noopener,noreferrer")}>
-                    Open room
-                  </SecondaryButton>
-                ) : null}
+                <SecondaryButton onClick={() => window.open(getJoinUrl(liveClass.meetingUrl, liveClass.title), "_blank", "noopener,noreferrer")}>
+                  Open room
+                </SecondaryButton>
                 <SecondaryButton onClick={() => setLiveClassStatus(liveClass.id, "recorded")}>Mark recorded</SecondaryButton>
                 {liveClass.recordingUrl ? (
                   <SecondaryButton onClick={() => window.open(liveClass.recordingUrl ?? undefined, "_blank", "noopener,noreferrer")}>

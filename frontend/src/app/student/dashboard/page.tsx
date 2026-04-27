@@ -7,6 +7,15 @@ import { DashboardLayout, PageHeader, StatsCard, StatusBadge, ProgressBar } from
 import { useMockLms } from "@/providers/mock-lms-provider";
 import { percentageForStudent } from "@/lib/utils/lms-helpers";
 
+function getJoinUrl(meetingUrl?: string | null, title?: string): string {
+  if (meetingUrl && meetingUrl.startsWith("http")) return meetingUrl;
+  const roomName = (title ?? "SmartLMS-Class")
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `https://meet.jit.si/SmartLMS-${roomName || "Live-Class"}`;
+}
+
 export default function StudentDashboardPage() {
   const { state, currentUser } = useMockLms();
   const [loading, setLoading] = useState(true);
@@ -182,12 +191,18 @@ export default function StudentDashboardPage() {
                       <Clock className="w-3.5 h-3.5" />
                       <span>{new Date(lc.startAt).toLocaleString("en-BD", { dateStyle: "medium", timeStyle: "short" })}</span>
                     </div>
-                    {lc.meetingUrl && lc.status === "live" && (
-                      <a href={lc.meetingUrl} target="_blank" rel="noopener noreferrer" className="btn-accent mt-2 py-1.5 px-3 text-xs w-full justify-center">
-                        Join Now — Live!
+                    <StatusBadge status={lc.status} />
+                    {lc.status !== "cancelled" && lc.status !== "completed" && lc.status !== "recorded" && (
+                      <a
+                        href={getJoinUrl(lc.meetingUrl, lc.title)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-accent mt-2 py-1.5 px-3 text-xs w-full justify-center flex items-center gap-1.5"
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        {lc.status === "live" ? "Join Now — Live! 🔴" : "Join Class (Jitsi Meet)"}
                       </a>
                     )}
-                    <StatusBadge status={lc.status} />
                   </div>
                 ))}
               </div>

@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, Users, Video, ClipboardList, ArrowRight, Clock } from "lucide-react";
+import { BookOpen, Users, Video, ClipboardList, ArrowRight, Clock, Video as VideoIcon } from "lucide-react";
 import { DashboardLayout, PageHeader, StatsCard, StatusBadge } from "@/components/dashboard/DashboardLayout";
 import { useMockLms } from "@/providers/mock-lms-provider";
+
+function getJoinUrl(meetingUrl?: string | null, title?: string): string {
+  if (meetingUrl && meetingUrl.startsWith("http")) return meetingUrl;
+  const roomName = (title ?? "SmartLMS-Class")
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `https://meet.jit.si/SmartLMS-${roomName || "Live-Class"}`;
+}
 
 export default function TeacherDashboardPage() {
   const { state, currentUser } = useMockLms();
@@ -167,9 +176,15 @@ export default function TeacherDashboardPage() {
                       </div>
                       <StatusBadge status={lc.status} />
                     </div>
-                    {lc.meetingUrl && (
-                      <a href={lc.meetingUrl} target="_blank" rel="noopener noreferrer" className="btn-accent mt-3 py-2 px-3 text-xs w-full justify-center">
-                        Join Class
+                    {lc.status !== "cancelled" && lc.status !== "completed" && lc.status !== "recorded" && (
+                      <a
+                        href={getJoinUrl(lc.meetingUrl, lc.title)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-accent mt-3 py-2 px-3 text-xs w-full justify-center flex items-center gap-1.5"
+                      >
+                        <VideoIcon className="w-3.5 h-3.5" />
+                        {lc.status === "live" ? "Join Live Class 🔴" : "Join Class (Jitsi Meet)"}
                       </a>
                     )}
                   </div>

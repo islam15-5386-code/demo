@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
+    use HasTenantScope;
+
     protected $fillable = [
         'tenant_id',
         'teacher_id',
